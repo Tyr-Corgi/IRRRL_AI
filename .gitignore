@@ -389,3 +389,9 @@ appsettings.Local.json
 Documents/
 Logs/
 
+# Data Protection - Encryption Keys (NEVER commit these!)
+Keys/
+*.db
+*.db-shm
+*.db-wal
+

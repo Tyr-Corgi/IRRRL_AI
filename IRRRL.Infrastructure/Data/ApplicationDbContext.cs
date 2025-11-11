@@ -54,7 +54,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
             entity.Property(e => e.Email).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Phone).IsRequired().HasMaxLength(20);
-            entity.Property(e => e.SSN).IsRequired().HasMaxLength(11); // Encrypted
+            // SSN is encrypted, so needs to store much longer strings (encrypted data is ~200+ chars)
+            entity.Property(e => e.SSN).IsRequired().HasMaxLength(500);
             entity.Property(e => e.UserId).IsRequired();
             
             entity.HasIndex(e => e.Email);

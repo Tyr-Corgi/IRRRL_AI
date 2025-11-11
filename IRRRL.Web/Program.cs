@@ -37,6 +37,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     )
 );
 
+// Data Protection (for encrypting SSN and other sensitive data)
+// This configures where encryption keys are stored
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(@"./Keys")) // Store keys in ./Keys directory
+    .SetApplicationName("IRRRL"); // Application name for key isolation
+
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -67,6 +73,9 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<INetTangibleBenefitCalculator, NetTangibleBenefitCalculator>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();
 builder.Services.AddScoped<IApplicationWorkflowService, ApplicationWorkflowService>();
+
+// Security Services
+builder.Services.AddScoped<IDataProtectionService, DataProtectionService>();
 
 // AI Services
 var aiConfig = new AIServiceConfig
