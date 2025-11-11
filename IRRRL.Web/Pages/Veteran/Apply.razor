@@ -18,7 +18,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                @for (int i = 1; i <= 3; i++)
+                @for (int i = 1; i <= 4; i++)
                 {
                     var stepNumber = i;
                     var isActive = currentStep == stepNumber;
@@ -41,7 +41,7 @@
                             <div class="fw-bold">@GetStepTitle(stepNumber)</div>
                             <small class="text-muted">@GetStepDescription(stepNumber)</small>
                         </div>
-                        @if (i < 3)
+                        @if (i < 4)
                         {
                             <div class="flex-grow-1 border-top mx-3"></div>
                         }
@@ -58,18 +58,25 @@
                 <div class="card-body p-4">
                     @if (currentStep == 1)
                     {
-                        <CurrentLoanStep 
+                        <PersonalInfoStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" />
                     }
                     else if (currentStep == 2)
+                    {
+                        <CurrentLoanStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 3)
                     {
                         <PropertyInfoStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
-                    else if (currentStep == 3)
+                    else if (currentStep == 4)
                     {
                         <ReviewAndSubmitStep 
                             Model="@applicationModel" 
@@ -88,7 +95,7 @@
 
     private void NextStep()
     {
-        if (currentStep < 3)
+        if (currentStep < 4)
         {
             currentStep++;
         }
@@ -106,9 +113,10 @@
     {
         return step switch
         {
-            1 => "Current Loan",
-            2 => "Property Info",
-            3 => "Review & Submit",
+            1 => "Personal Info",
+            2 => "Current Loan",
+            3 => "Property Info",
+            4 => "Review & Submit",
             _ => ""
         };
     }
@@ -117,9 +125,10 @@
     {
         return step switch
         {
-            1 => "Your existing VA loan details",
-            2 => "Property information",
-            3 => "Review and submit application",
+            1 => "Your contact information",
+            2 => "Your existing VA loan details",
+            3 => "Property information",
+            4 => "Review and submit application",
             _ => ""
         };
     }
@@ -135,6 +144,23 @@
     // Model for the application form
     public class ApplicationFormModel
     {
+        // Personal Info
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public DateTime? DateOfBirth { get; set; }
+        public string SSN { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
+        public string Email { get; set; } = "";
+        
+        // Demographics (Optional)
+        public string Gender { get; set; } = "";
+        public string Ethnicity { get; set; } = "";
+        public bool RaceAmericanIndian { get; set; }
+        public bool RaceAsian { get; set; }
+        public bool RaceBlack { get; set; }
+        public bool RacePacificIslander { get; set; }
+        public bool RaceWhite { get; set; }
+
         // Current Loan Info
         public decimal CurrentLoanAmount { get; set; }
         public decimal CurrentInterestRate { get; set; }
