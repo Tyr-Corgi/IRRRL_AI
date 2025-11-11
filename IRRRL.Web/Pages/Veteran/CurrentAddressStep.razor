@@ -1,0 +1,159 @@
+@using static IRRRL.Web.Pages.Veteran.Apply
+
+<h4 class="mb-4">Current Residence</h4>
+
+<div class="alert alert-info mb-4">
+    <strong>📍 Where do you currently live?</strong>
+    <p class="mb-0">This may be different from the property you're refinancing if it's a rental/investment property.</p>
+</div>
+
+<EditForm Model="@Model" OnValidSubmit="HandleNext">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-12 mb-3">
+            <label class="form-label">Current Street Address <span class="text-danger">*</span></label>
+            <InputText @bind-Value="Model.CurrentStreetAddress" class="form-control" placeholder="123 Main St" />
+            <ValidationMessage For="@(() => Model.CurrentStreetAddress)" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">City <span class="text-danger">*</span></label>
+            <InputText @bind-Value="Model.CurrentCity" class="form-control" placeholder="Springfield" />
+            <ValidationMessage For="@(() => Model.CurrentCity)" class="text-danger" />
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label class="form-label">State <span class="text-danger">*</span></label>
+            <InputText @bind-Value="Model.CurrentState" class="form-control" placeholder="IL" maxlength="2" />
+            <ValidationMessage For="@(() => Model.CurrentState)" class="text-danger" />
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label class="form-label">ZIP Code <span class="text-danger">*</span></label>
+            <InputText @bind-Value="Model.CurrentZipCode" class="form-control" placeholder="62701" />
+            <ValidationMessage For="@(() => Model.CurrentZipCode)" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Years at this Address <span class="text-danger">*</span></label>
+            <InputNumber @bind-Value="Model.YearsAtCurrentAddress" class="form-control" min="0" max="99" />
+            <ValidationMessage For="@(() => Model.YearsAtCurrentAddress)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Months <span class="text-danger">*</span></label>
+            <InputNumber @bind-Value="Model.MonthsAtCurrentAddress" class="form-control" min="0" max="11" />
+            <ValidationMessage For="@(() => Model.MonthsAtCurrentAddress)" class="text-danger" />
+            <small class="text-muted">If less than 2 years total, we'll ask for your previous address</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Housing Status <span class="text-danger">*</span></label>
+            <InputSelect @bind-Value="Model.CurrentHousingStatus" class="form-select">
+                <option value="">Select Status</option>
+                <option value="Own">Own</option>
+                <option value="Rent">Rent</option>
+                <option value="LivingRentFree">Living Rent Free</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.CurrentHousingStatus)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Monthly Payment <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <InputNumber @bind-Value="Model.CurrentMonthlyHousingPayment" class="form-control" min="0" step="1" />
+            </div>
+            <ValidationMessage For="@(() => Model.CurrentMonthlyHousingPayment)" class="text-danger" />
+            <small class="text-muted">Rent, mortgage, or 0 if living rent-free</small>
+        </div>
+    </div>
+
+    @* Show previous address if they've been at current address < 2 years *@
+    @if (NeedsPreviousAddress())
+    {
+        <hr class="my-4" />
+        <h5 class="mb-3">Previous Residence</h5>
+        <p class="text-muted small">Since you've been at your current address for less than 2 years, please provide your previous address.</p>
+
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label class="form-label">Previous Street Address <span class="text-danger">*</span></label>
+                <InputText @bind-Value="Model.PreviousStreetAddress" class="form-control" placeholder="456 Oak Ave" />
+                <ValidationMessage For="@(() => Model.PreviousStreetAddress)" class="text-danger" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">City <span class="text-danger">*</span></label>
+                <InputText @bind-Value="Model.PreviousCity" class="form-control" placeholder="Chicago" />
+                <ValidationMessage For="@(() => Model.PreviousCity)" class="text-danger" />
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">State <span class="text-danger">*</span></label>
+                <InputText @bind-Value="Model.PreviousState" class="form-control" placeholder="IL" maxlength="2" />
+                <ValidationMessage For="@(() => Model.PreviousState)" class="text-danger" />
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <label class="form-label">ZIP Code <span class="text-danger">*</span></label>
+                <InputText @bind-Value="Model.PreviousZipCode" class="form-control" placeholder="60601" />
+                <ValidationMessage For="@(() => Model.PreviousZipCode)" class="text-danger" />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Years at Previous Address <span class="text-danger">*</span></label>
+                <InputNumber @bind-Value="Model.YearsAtPreviousAddress" class="form-control" min="0" max="99" />
+                <ValidationMessage For="@(() => Model.YearsAtPreviousAddress)" class="text-danger" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Months</label>
+                <InputNumber @bind-Value="Model.MonthsAtPreviousAddress" class="form-control" min="0" max="11" />
+            </div>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="HandleBack">
+            ← Back
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg">
+            Next: Current Loan Information →
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public ApplicationFormModel Model { get; set; } = new();
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private bool NeedsPreviousAddress()
+    {
+        int totalMonths = (Model.YearsAtCurrentAddress * 12) + Model.MonthsAtCurrentAddress;
+        return totalMonths < 24; // Less than 2 years
+    }
+
+    private async Task HandleNext()
+    {
+        await OnNext.InvokeAsync();
+    }
+
+    private async Task HandleBack()
+    {
+        await OnBack.InvokeAsync();
+    }
+}
+

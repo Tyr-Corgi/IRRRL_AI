@@ -160,6 +160,37 @@
         public string SSN { get; set; } = "";
         public string PhoneNumber { get; set; } = "";
         public string Email { get; set; } = "";
+        public string CitizenshipStatus { get; set; } = "";
+        public string MaritalStatus { get; set; } = "";
+        public string SpouseFirstName { get; set; } = "";
+        public string SpouseLastName { get; set; } = "";
+        
+        // Current Address
+        public string CurrentStreetAddress { get; set; } = "";
+        public string CurrentCity { get; set; } = "";
+        public string CurrentState { get; set; } = "";
+        public string CurrentZipCode { get; set; } = "";
+        public int YearsAtCurrentAddress { get; set; }
+        public int MonthsAtCurrentAddress { get; set; }
+        public string CurrentHousingStatus { get; set; } = "";
+        public decimal CurrentMonthlyHousingPayment { get; set; }
+        
+        // Previous Address (if < 2 years at current)
+        public string PreviousStreetAddress { get; set; } = "";
+        public string PreviousCity { get; set; } = "";
+        public string PreviousState { get; set; } = "";
+        public string PreviousZipCode { get; set; } = "";
+        public int YearsAtPreviousAddress { get; set; }
+        public int MonthsAtPreviousAddress { get; set; }
+        
+        // Military Service
+        public string MilitaryBranch { get; set; } = "";
+        public string MilitaryStatus { get; set; } = "";
+        public DateTime? MilitaryServiceStartDate { get; set; }
+        public DateTime? MilitaryServiceEndDate { get; set; }
+        public string VADisabilityRating { get; set; } = "";
+        public string VACaseNumber { get; set; } = "";
+        public bool IsFirstTimeVALoan { get; set; }
         
         // Demographics (Optional)
         public string Gender { get; set; } = "";
@@ -186,6 +217,22 @@
         public string PropertyType { get; set; } = "SingleFamily";
         public string Occupancy { get; set; } = "PrimaryResidence";
         public decimal EstimatedHomeValue { get; set; }
+        public int NumberOfUnits { get; set; } = 1;
+        public int? YearBuilt { get; set; }
+        public DateTime? PropertyAcquiredDate { get; set; }
+        
+        // Declarations
+        public bool IntendToOccupyProperty { get; set; }
+        public bool HasOutstandingJudgments { get; set; }
+        public bool HasBankruptcy { get; set; }
+        public string BankruptcyType { get; set; } = "";
+        public DateTime? BankruptcyDischargeDate { get; set; }
+        public bool HasForeclosure { get; set; }
+        public DateTime? ForeclosureCompletionDate { get; set; }
+        public bool IsPartyToLawsuit { get; set; }
+        public bool HasDelinquentFederalDebt { get; set; }
+        public bool HasAlimonyChildSupport { get; set; }
+        public decimal? AlimonyChildSupportAmount { get; set; }
 
         // New Loan Terms
         public decimal DesiredInterestRate { get; set; }

@@ -1,0 +1,134 @@
+@using static IRRRL.Web.Pages.Veteran.Apply
+
+<h4 class="mb-4">Military Service</h4>
+
+<div class="alert alert-info mb-4">
+    <strong>🎖️ VA Loan Eligibility</strong>
+    <p class="mb-0">Your military service information is required to verify VA loan eligibility and determine funding fee waivers.</p>
+</div>
+
+<EditForm Model="@Model" OnValidSubmit="HandleNext">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Branch of Service <span class="text-danger">*</span></label>
+            <InputSelect @bind-Value="Model.MilitaryBranch" class="form-select">
+                <option value="">Select Branch</option>
+                <option value="Army">Army</option>
+                <option value="Navy">Navy</option>
+                <option value="AirForce">Air Force</option>
+                <option value="MarineCorps">Marine Corps</option>
+                <option value="CoastGuard">Coast Guard</option>
+                <option value="SpaceForce">Space Force</option>
+                <option value="NationalGuard">National Guard</option>
+                <option value="Reserves">Reserves</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.MilitaryBranch)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Current Service Status <span class="text-danger">*</span></label>
+            <InputSelect @bind-Value="Model.MilitaryStatus" class="form-select">
+                <option value="">Select Status</option>
+                <option value="ActiveDuty">Active Duty</option>
+                <option value="Veteran">Veteran (Discharged)</option>
+                <option value="Reserves">Reserves</option>
+                <option value="NationalGuard">National Guard</option>
+                <option value="Retired">Retired</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.MilitaryStatus)" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Service Start Date <span class="text-danger">*</span></label>
+            <InputDate @bind-Value="Model.MilitaryServiceStartDate" class="form-control" />
+            <ValidationMessage For="@(() => Model.MilitaryServiceStartDate)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Service End Date</label>
+            <InputDate @bind-Value="Model.MilitaryServiceEndDate" class="form-control" />
+            <ValidationMessage For="@(() => Model.MilitaryServiceEndDate)" class="text-danger" />
+            <small class="text-muted">Leave blank if currently serving</small>
+        </div>
+    </div>
+
+    <hr class="my-3" />
+
+    <h5 class="mb-3">VA Benefits Information</h5>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">VA Service-Connected Disability Rating</label>
+            <InputSelect @bind-Value="Model.VADisabilityRating" class="form-select">
+                <option value="">No Disability / Not Rated</option>
+                <option value="10">10%</option>
+                <option value="20">20%</option>
+                <option value="30">30%</option>
+                <option value="40">40%</option>
+                <option value="50">50%</option>
+                <option value="60">60%</option>
+                <option value="70">70%</option>
+                <option value="80">80%</option>
+                <option value="90">90%</option>
+                <option value="100">100%</option>
+            </InputSelect>
+            <small class="text-muted">Disability rating of 10% or higher waives the VA funding fee</small>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">VA Case Number (if known)</label>
+            <InputText @bind-Value="Model.VACaseNumber" class="form-control" placeholder="Optional" />
+            <small class="text-muted">From previous VA loan, if applicable</small>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <InputCheckbox @bind-Value="Model.IsFirstTimeVALoan" class="form-check-input" id="firstTimeVALoan" />
+            <label class="form-check-label" for="firstTimeVALoan">
+                This is my first time using a VA loan
+            </label>
+        </div>
+        <small class="text-muted d-block mt-1">First-time VA loan users have a higher funding fee (unless exempt due to disability)</small>
+    </div>
+
+    <div class="alert alert-success">
+        <strong>💰 Funding Fee Information:</strong>
+        <ul class="mb-0 mt-2">
+            <li><strong>IRRRL (Refinance):</strong> 0.5% of loan amount</li>
+            <li><strong>With Disability:</strong> 10% rating or higher = $0 fee (waived)</li>
+            <li><strong>Purple Heart:</strong> Funding fee waived</li>
+            <li><strong>Surviving Spouse:</strong> Fee may be waived</li>
+        </ul>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="HandleBack">
+            ← Back
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg">
+            Next: Property Information →
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public ApplicationFormModel Model { get; set; } = new();
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private async Task HandleNext()
+    {
+        await OnNext.InvokeAsync();
+    }
+
+    private async Task HandleBack()
+    {
+        await OnBack.InvokeAsync();
+    }
+}
+

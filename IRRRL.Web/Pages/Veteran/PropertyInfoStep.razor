@@ -138,6 +138,33 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Number of Units</label>
+            <InputSelect @bind-Value="Model.NumberOfUnits" class="form-select">
+                <option value="1">1 Unit</option>
+                <option value="2">2 Units</option>
+                <option value="3">3 Units</option>
+                <option value="4">4 Units</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.NumberOfUnits)" class="text-danger" />
+            <small class="text-muted">VA loans allow up to 4 units</small>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Year Built</label>
+            <InputNumber @bind-Value="Model.YearBuilt" class="form-control" placeholder="2005" min="1800" max="2025" />
+            <ValidationMessage For="@(() => Model.YearBuilt)" class="text-danger" />
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Date Acquired</label>
+            <InputDate @bind-Value="Model.PropertyAcquiredDate" class="form-control" />
+            <ValidationMessage For="@(() => Model.PropertyAcquiredDate)" class="text-danger" />
+            <small class="text-muted">When you purchased it</small>
+        </div>
+    </div>
+
     <div class="alert alert-warning" role="alert">
         <strong>⚠️ Important:</strong> IRRRL requires that you previously occupied this property as your primary residence. 
         You may now use it as a rental or second home, but it must have been your primary residence at some point.

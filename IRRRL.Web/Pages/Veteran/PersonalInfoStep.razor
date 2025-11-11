@@ -52,6 +52,45 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Citizenship Status <span class="text-danger">*</span></label>
+            <InputSelect @bind-Value="Model.CitizenshipStatus" class="form-select">
+                <option value="">Select Status</option>
+                <option value="USCitizen">U.S. Citizen</option>
+                <option value="PermanentResident">Permanent Resident Alien</option>
+                <option value="NonPermanentResident">Non-Permanent Resident Alien</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.CitizenshipStatus)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Marital Status <span class="text-danger">*</span></label>
+            <InputSelect @bind-Value="Model.MaritalStatus" class="form-select">
+                <option value="">Select Status</option>
+                <option value="Married">Married</option>
+                <option value="Unmarried">Unmarried (Single, Divorced, Widowed)</option>
+                <option value="Separated">Separated</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.MaritalStatus)" class="text-danger" />
+        </div>
+    </div>
+
+    @if (Model.MaritalStatus == "Married")
+    {
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Spouse First Name</label>
+                <InputText @bind-Value="Model.SpouseFirstName" class="form-control" placeholder="Jane" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Spouse Last Name</label>
+                <InputText @bind-Value="Model.SpouseLastName" class="form-control" placeholder="Doe" />
+            </div>
+        </div>
+    }
+
     <div class="d-flex justify-content-end mt-4">
         <button type="submit" class="btn btn-primary btn-lg">
             Next: Current Loan Information →
