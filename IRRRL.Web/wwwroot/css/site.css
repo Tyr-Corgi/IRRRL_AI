@@ -129,6 +129,7 @@ a, .btn-link {
 @media (min-width: 641px) {
     .page {
         flex-direction: row;
+        display: flex;
     }
 
     .sidebar {
@@ -136,6 +137,13 @@ a, .btn-link {
         height: 100vh;
         position: sticky;
         top: 0;
+        flex-shrink: 0;
+    }
+
+    main {
+        flex-grow: 1;
+        overflow-y: auto;
+        height: 100vh;
     }
 
     .top-row {
