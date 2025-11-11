@@ -61,35 +61,28 @@
     </div>
 </div>
 
-<div class="card mb-3">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <strong>New Loan Terms</strong>
-        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(3)">Edit</button>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6 mb-2">
-                <small class="text-muted">Desired Interest Rate</small>
-                <div><strong>@Model.DesiredInterestRate%</strong></div>
-            </div>
-            <div class="col-md-6 mb-2">
-                <small class="text-muted">Desired Term</small>
-                <div><strong>@(Model.DesiredTermMonths / 12) years (@Model.DesiredTermMonths months)</strong></div>
-            </div>
-            <div class="col-12 mb-2">
-                <small class="text-muted">Funding Fee</small>
-                <div><strong>@(Model.IncludeFundingFeeInLoan ? "Included in loan" : "Paid at closing")</strong></div>
-            </div>
+@if (Model.EstimatedHomeValue > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white">
+            <strong>Estimated Home Value</strong>
+        </div>
+        <div class="card-body">
+            <div class="h4 text-success">$@Model.EstimatedHomeValue.ToString("N0")</div>
+            <small class="text-muted">This estimate will be verified by the loan officer.</small>
         </div>
     </div>
-</div>
+}
 
-<div class="alert alert-success">
-    <h5 class="alert-heading">✅ Eligibility Check</h5>
+<div class="alert alert-info">
+    <h5 class="alert-heading">📋 What Happens Next</h5>
+    <p class="mb-2">A loan officer will:</p>
     <ul class="mb-0">
-        <li>Rate reduction requirement: <strong>Met</strong> (@((Model.CurrentInterestRate - Model.DesiredInterestRate).ToString("N2"))% reduction)</li>
-        <li>Recoupment period: <strong>Met</strong> (within 36 months)</li>
-        <li>Existing VA loan: <strong>Confirmed</strong></li>
+        <li>Review your current loan details and verify eligibility</li>
+        <li>Find the best interest rate available for you</li>
+        <li>Calculate your potential savings</li>
+        <li>Request any required documents</li>
+        <li>Guide you through the refinance process</li>
     </ul>
 </div>
 

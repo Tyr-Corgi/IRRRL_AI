@@ -37,9 +37,26 @@
         </div>
 
         <div class="col-md-6 mb-3">
-            <label class="form-label">Remaining Term (Months)</label>
-            <InputNumber @bind-Value="Model.RemainingTermMonths" class="form-control" placeholder="300" />
-            <ValidationMessage For="@(() => Model.RemainingTermMonths)" class="text-danger" />
+            <label class="form-label">How long ago did you get/refinance this loan?</label>
+            <div class="row g-2">
+                <div class="col-6">
+                    <div class="input-group">
+                        <InputNumber @bind-Value="yearsAgo" @bind-Value:after="CalculateRemainingTerm" class="form-control" placeholder="5" min="0" max="30" />
+                        <span class="input-group-text">years</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <InputNumber @bind-Value="monthsAgo" @bind-Value:after="CalculateRemainingTerm" class="form-control" placeholder="6" min="0" max="11" />
+                        <span class="input-group-text">months</span>
+                    </div>
+                </div>
+            </div>
+            <small class="text-muted">We'll calculate your remaining term (originally 30 years)</small>
+            @if (Model.RemainingTermMonths > 0)
+            {
+                <div class="mt-1"><small class="text-success">Remaining: ~@((Model.RemainingTermMonths/12)) years (@Model.RemainingTermMonths months)</small></div>
+            }
         </div>
     </div>
 
@@ -71,6 +88,17 @@
 @code {
     [Parameter] public ApplicationFormModel Model { get; set; } = new();
     [Parameter] public EventCallback OnNext { get; set; }
+
+    private int yearsAgo = 0;
+    private int monthsAgo = 0;
+
+    private void CalculateRemainingTerm()
+    {
+        // Calculate remaining term based on when they got the loan
+        // Assuming original 30-year (360 month) term
+        int totalMonthsPassed = (yearsAgo * 12) + monthsAgo;
+        Model.RemainingTermMonths = Math.Max(360 - totalMonthsPassed, 0);
+    }
 
     private async Task HandleNext()
     {
