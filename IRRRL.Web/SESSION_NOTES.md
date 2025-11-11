@@ -89,11 +89,14 @@
 6. **Admin Panel** - User management, system configuration
 
 ### Backend Features to Implement
-1. **AI Integration** - Connect Azure OpenAI services (need API keys)
-2. **Document Storage** - Configure file storage for uploaded documents
-3. **Email Notifications** - Set up SMTP for email alerts
-4. **PDF Generation** - Implement actual IRRRL form generation
-5. **Audit Logging** - Enhanced logging for compliance
+1. **Property Value API Integration** - Sign up and integrate property valuation service
+   - Options: Zillow API, Realty Mole, Attom Data, RealtyAPI.co
+   - Location: `IRRRL.Web/Pages/Veteran/PropertyInfoStep.razor` (EstimateHomeValue method)
+2. **AI Integration** - Connect Azure OpenAI services (need API keys)
+3. **Document Storage** - Configure file storage for uploaded documents
+4. **Email Notifications** - Set up SMTP for email alerts
+5. **PDF Generation** - Implement actual IRRRL form generation
+6. **Audit Logging** - Enhanced logging for compliance
 
 ---
 
