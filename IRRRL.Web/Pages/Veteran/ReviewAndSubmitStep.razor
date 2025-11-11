@@ -1,0 +1,172 @@
+@using static IRRRL.Web.Pages.Veteran.Apply
+
+<h4 class="mb-4">Review Your Application</h4>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>Current Loan Information</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(1)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Loan Amount</small>
+                <div><strong>$@Model.CurrentLoanAmount.ToString("N2")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Interest Rate</small>
+                <div><strong>@Model.CurrentInterestRate%</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Monthly Payment</small>
+                <div><strong>$@Model.CurrentMonthlyPayment.ToString("N2")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Remaining Term</small>
+                <div><strong>@Model.RemainingTermMonths months</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">VA Loan Number</small>
+                <div><strong>@Model.LoanNumber</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Original Loan Date</small>
+                <div><strong>@Model.OriginalLoanDate?.ToString("MM/dd/yyyy")</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>Property Information</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(2)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 mb-2">
+                <small class="text-muted">Address</small>
+                <div><strong>@Model.PropertyAddress</strong></div>
+                <div><strong>@Model.City, @Model.State @Model.ZipCode</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Property Type</small>
+                <div><strong>@Model.PropertyType</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Occupancy</small>
+                <div><strong>@Model.Occupancy</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>New Loan Terms</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(3)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Desired Interest Rate</small>
+                <div><strong>@Model.DesiredInterestRate%</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Desired Term</small>
+                <div><strong>@(Model.DesiredTermMonths / 12) years (@Model.DesiredTermMonths months)</strong></div>
+            </div>
+            <div class="col-12 mb-2">
+                <small class="text-muted">Funding Fee</small>
+                <div><strong>@(Model.IncludeFundingFeeInLoan ? "Included in loan" : "Paid at closing")</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-success">
+    <h5 class="alert-heading">✅ Eligibility Check</h5>
+    <ul class="mb-0">
+        <li>Rate reduction requirement: <strong>Met</strong> (@((Model.CurrentInterestRate - Model.DesiredInterestRate).ToString("N2"))% reduction)</li>
+        <li>Recoupment period: <strong>Met</strong> (within 36 months)</li>
+        <li>Existing VA loan: <strong>Confirmed</strong></li>
+    </ul>
+</div>
+
+<div class="card bg-light mb-4">
+    <div class="card-body">
+        <h5 class="text-center mb-3">📋 Next Steps After Submission</h5>
+        <ol>
+            <li class="mb-2">
+                <strong>Application Review</strong> - A loan officer will review your application within 24-48 hours
+            </li>
+            <li class="mb-2">
+                <strong>Document Collection</strong> - You'll receive a list of required documents to upload
+            </li>
+            <li class="mb-2">
+                <strong>Verification</strong> - Our AI system will validate your documents and verify eligibility
+            </li>
+            <li class="mb-2">
+                <strong>Underwriting</strong> - Your application will be submitted to an underwriter for final approval
+            </li>
+            <li class="mb-0">
+                <strong>Closing</strong> - Once approved, we'll schedule your loan closing
+            </li>
+        </ol>
+    </div>
+</div>
+
+<div class="form-check mb-4">
+    <input class="form-check-input" type="checkbox" @bind="agreedToTerms" id="agreeTerms">
+    <label class="form-check-label" for="agreeTerms">
+        I certify that the information provided is accurate and complete to the best of my knowledge. 
+        I authorize the lender to verify my VA loan eligibility and obtain necessary credit reports.
+    </label>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="HandleBack">
+        ← Back
+    </button>
+    <button type="button" class="btn btn-success btn-lg" disabled="@(!agreedToTerms || isSubmitting)" @onclick="HandleSubmit">
+        @if (isSubmitting)
+        {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span>Submitting...</span>
+        }
+        else
+        {
+            <span>Submit Application</span>
+        }
+    </button>
+</div>
+
+@code {
+    [Parameter] public ApplicationFormModel Model { get; set; } = new();
+    [Parameter] public EventCallback OnBack { get; set; }
+    [Parameter] public EventCallback OnSubmit { get; set; }
+
+    private bool agreedToTerms = false;
+    private bool isSubmitting = false;
+
+    private async Task HandleBack()
+    {
+        await OnBack.InvokeAsync();
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        await Task.Delay(1000); // Simulate API call
+        await OnSubmit.InvokeAsync();
+        isSubmitting = false;
+    }
+
+    private void EditStep(int step)
+    {
+        // This will be implemented to jump back to a specific step
+        // For now, just go back
+        HandleBack();
+    }
+}
+

@@ -1,0 +1,169 @@
+@page "/veteran/apply"
+@using Microsoft.AspNetCore.Authorization
+@using IRRRL.Core.Enums
+@attribute [Authorize(Roles = "Veteran")]
+@inject NavigationManager NavigationManager
+
+<PageTitle>Apply for IRRRL</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2>IRRRL Application</h2>
+            <p class="text-muted">Complete the following steps to apply for an Interest Rate Reduction Refinance Loan</p>
+        </div>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                @for (int i = 1; i <= 4; i++)
+                {
+                    var stepNumber = i;
+                    var isActive = currentStep == stepNumber;
+                    var isCompleted = currentStep > stepNumber;
+                    var stepClass = isActive ? "bg-primary text-white" : isCompleted ? "bg-success text-white" : "bg-secondary text-white";
+
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <div class="@($"rounded-circle d-flex align-items-center justify-content-center {stepClass}")" 
+                             style="width: 40px; height: 40px; font-weight: bold;">
+                            @if (isCompleted)
+                            {
+                                <span>✓</span>
+                            }
+                            else
+                            {
+                                <span>@stepNumber</span>
+                            }
+                        </div>
+                        <div class="ms-2 flex-grow-1">
+                            <div class="fw-bold">@GetStepTitle(stepNumber)</div>
+                            <small class="text-muted">@GetStepDescription(stepNumber)</small>
+                        </div>
+                        @if (i < 4)
+                        {
+                            <div class="flex-grow-1 border-top mx-3"></div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Content -->
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    @if (currentStep == 1)
+                    {
+                        <CurrentLoanStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" />
+                    }
+                    else if (currentStep == 2)
+                    {
+                        <PropertyInfoStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 3)
+                    {
+                        <NewLoanTermsStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 4)
+                    {
+                        <ReviewAndSubmitStep 
+                            Model="@applicationModel" 
+                            OnBack="PreviousStep" 
+                            OnSubmit="SubmitApplication" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int currentStep = 1;
+    private ApplicationFormModel applicationModel = new();
+
+    private void NextStep()
+    {
+        if (currentStep < 4)
+        {
+            currentStep++;
+        }
+    }
+
+    private void PreviousStep()
+    {
+        if (currentStep > 1)
+        {
+            currentStep--;
+        }
+    }
+
+    private string GetStepTitle(int step)
+    {
+        return step switch
+        {
+            1 => "Current Loan",
+            2 => "Property Info",
+            3 => "New Loan Terms",
+            4 => "Review & Submit",
+            _ => ""
+        };
+    }
+
+    private string GetStepDescription(int step)
+    {
+        return step switch
+        {
+            1 => "Your existing VA loan details",
+            2 => "Property information",
+            3 => "Desired refinance terms",
+            4 => "Review and submit application",
+            _ => ""
+        };
+    }
+
+    private async Task SubmitApplication()
+    {
+        // TODO: Submit to backend API
+        // For now, simulate submission and redirect to confirmation
+        await Task.Delay(500);
+        NavigationManager.NavigateTo("/veteran/confirmation");
+    }
+
+    // Model for the application form
+    public class ApplicationFormModel
+    {
+        // Current Loan Info
+        public decimal CurrentLoanAmount { get; set; }
+        public decimal CurrentInterestRate { get; set; }
+        public decimal CurrentMonthlyPayment { get; set; }
+        public int RemainingTermMonths { get; set; }
+        public string LoanNumber { get; set; } = "";
+        public DateTime? OriginalLoanDate { get; set; }
+
+        // Property Info
+        public string PropertyAddress { get; set; } = "";
+        public string City { get; set; } = "";
+        public string State { get; set; } = "";
+        public string ZipCode { get; set; } = "";
+        public string PropertyType { get; set; } = "SingleFamily";
+        public string Occupancy { get; set; } = "PrimaryResidence";
+
+        // New Loan Terms
+        public decimal DesiredInterestRate { get; set; }
+        public int DesiredTermMonths { get; set; } = 360;
+        public bool IncludeFundingFeeInLoan { get; set; } = true;
+    }
+}
+

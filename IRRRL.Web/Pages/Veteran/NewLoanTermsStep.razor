@@ -1,0 +1,193 @@
+@using static IRRRL.Web.Pages.Veteran.Apply
+@inject IRRRL.Core.Interfaces.INetTangibleBenefitCalculator NTBCalculator
+
+<h4 class="mb-4">New Loan Terms</h4>
+
+<EditForm Model="@Model" OnValidSubmit="HandleNext">
+    <DataAnnotationsValidator />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Desired Interest Rate</label>
+            <div class="input-group">
+                <InputNumber @bind-Value="Model.DesiredInterestRate" @bind-Value:after="CalculateSavings" class="form-control" placeholder="3.5" step="0.01" />
+                <span class="input-group-text">%</span>
+            </div>
+            <ValidationMessage For="@(() => Model.DesiredInterestRate)" class="text-danger" />
+            <small class="text-muted">Current market rates for VA IRRRL: 3.0% - 4.0%</small>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Desired Loan Term</label>
+            <InputSelect @bind-Value="Model.DesiredTermMonths" @bind-Value:after="CalculateSavings" class="form-select">
+                <option value="180">15 Years (180 months)</option>
+                <option value="240">20 Years (240 months)</option>
+                <option value="300">25 Years (300 months)</option>
+                <option value="360">30 Years (360 months)</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => Model.DesiredTermMonths)" class="text-danger" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <InputCheckbox @bind-Value="Model.IncludeFundingFeeInLoan" @bind-Value:after="CalculateSavings" class="form-check-input" id="includeFundingFee" />
+            <label class="form-check-label" for="includeFundingFee">
+                Include 0.5% VA funding fee in loan amount
+            </label>
+        </div>
+        <small class="text-muted">The funding fee can be rolled into your loan or paid upfront at closing.</small>
+    </div>
+
+    @if (showSavings)
+    {
+        <div class="card bg-light border-success mb-4">
+            <div class="card-body">
+                <h5 class="card-title text-success">💰 Your Potential Savings</h5>
+                
+                <div class="row text-center mb-3">
+                    <div class="col-md-4">
+                        <div class="h2 text-success mb-0">$@monthlySavings.ToString("N2")</div>
+                        <small class="text-muted">Per Month</small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="h2 text-primary mb-0">$@annualSavings.ToString("N0")</div>
+                        <small class="text-muted">Per Year</small>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="h2 text-info mb-0">$@lifetimeSavings.ToString("N0")</div>
+                        <small class="text-muted">Over Loan Life</small>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>New Monthly Payment:</strong> $@newMonthlyPayment.ToString("N2")
+                    </div>
+                    <div class="col-md-6">
+                        <strong>New Loan Amount:</strong> $@newLoanAmount.ToString("N2")
+                    </div>
+                </div>
+
+                @if (!meetsNTBRequirement)
+                {
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <strong>⚠️ Notice:</strong> The interest rate reduction is less than 0.5%. You may need to lower the desired rate to qualify for IRRRL.
+                    </div>
+                }
+                else if (recoupmentMonths > 36)
+                {
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <strong>⚠️ Notice:</strong> The recoupment period is @recoupmentMonths months, which exceeds the 36-month requirement. 
+                        Consider adjusting your terms.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-success mt-3 mb-0">
+                        <strong>✅ Qualifies for IRRRL</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Interest rate reduction: @rateReduction.ToString("N2")%</li>
+                            <li>Recoupment period: @recoupmentMonths months</li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between mt-4">
+        <button type="button" class="btn btn-outline-secondary btn-lg" @onclick="HandleBack">
+            ← Back
+        </button>
+        <button type="submit" class="btn btn-primary btn-lg" disabled="@(!showSavings || !meetsNTBRequirement || recoupmentMonths > 36)">
+            Next: Review & Submit →
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public ApplicationFormModel Model { get; set; } = new();
+    [Parameter] public EventCallback OnNext { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    private bool showSavings = false;
+    private decimal monthlySavings = 0;
+    private decimal annualSavings = 0;
+    private decimal lifetimeSavings = 0;
+    private decimal newMonthlyPayment = 0;
+    private decimal newLoanAmount = 0;
+    private bool meetsNTBRequirement = false;
+    private int recoupmentMonths = 0;
+    private decimal rateReduction = 0;
+
+    protected override void OnInitialized()
+    {
+        if (Model.DesiredInterestRate > 0)
+        {
+            CalculateSavings();
+        }
+    }
+
+    private void CalculateSavings()
+    {
+        if (Model.CurrentLoanAmount > 0 && Model.CurrentInterestRate > 0 && Model.DesiredInterestRate > 0)
+        {
+            // Calculate funding fee
+            var fundingFee = Model.CurrentLoanAmount * 0.005m; // 0.5%
+            
+            // New loan amount
+            newLoanAmount = Model.IncludeFundingFeeInLoan 
+                ? Model.CurrentLoanAmount + fundingFee 
+                : Model.CurrentLoanAmount;
+
+            // Calculate new monthly payment
+            var monthlyRate = Model.DesiredInterestRate / 100m / 12m;
+            var numPayments = Model.DesiredTermMonths;
+            
+            if (monthlyRate > 0)
+            {
+                newMonthlyPayment = newLoanAmount * (monthlyRate * (decimal)Math.Pow((double)(1 + monthlyRate), numPayments)) 
+                    / ((decimal)Math.Pow((double)(1 + monthlyRate), numPayments) - 1);
+            }
+            else
+            {
+                newMonthlyPayment = newLoanAmount / numPayments;
+            }
+
+            // Calculate savings
+            monthlySavings = Model.CurrentMonthlyPayment - newMonthlyPayment;
+            annualSavings = monthlySavings * 12;
+            lifetimeSavings = monthlySavings * Model.DesiredTermMonths;
+
+            // Check NTB requirements
+            rateReduction = Model.CurrentInterestRate - Model.DesiredInterestRate;
+            meetsNTBRequirement = rateReduction >= 0.5m;
+
+            // Calculate recoupment period (funding fee / monthly savings)
+            if (monthlySavings > 0)
+            {
+                recoupmentMonths = (int)Math.Ceiling(fundingFee / monthlySavings);
+            }
+            else
+            {
+                recoupmentMonths = 999; // Invalid
+            }
+
+            showSavings = true;
+        }
+    }
+
+    private async Task HandleNext()
+    {
+        await OnNext.InvokeAsync();
+    }
+
+    private async Task HandleBack()
+    {
+        await OnBack.InvokeAsync();
+    }
+}
+

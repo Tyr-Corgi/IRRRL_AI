@@ -1,0 +1,76 @@
+@page "/veteran/confirmation"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Veteran")]
+
+<PageTitle>Application Submitted</PageTitle>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center" 
+                             style="width: 100px; height: 100px;">
+                            <span class="text-white" style="font-size: 60px;">✓</span>
+                        </div>
+                    </div>
+
+                    <h2 class="mb-3">Application Submitted Successfully!</h2>
+                    <p class="lead text-muted mb-4">
+                        Thank you for applying for an IRRRL refinance. Your application has been received and is being reviewed.
+                    </p>
+
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">📧 What's Next?</h5>
+                        <ul class="text-start mb-0">
+                            <li>You'll receive a confirmation email within a few minutes</li>
+                            <li>A loan officer will review your application within 24-48 hours</li>
+                            <li>You'll be notified of any required documents</li>
+                            <li>Track your application status from your dashboard</li>
+                        </ul>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Application ID</h6>
+                                    <div class="h4 mb-0 text-primary">#@applicationId</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Submitted</h6>
+                                    <div class="h4 mb-0 text-primary">@DateTime.Now.ToString("MM/dd/yyyy")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="/veteran/applications" class="btn btn-primary btn-lg me-2">
+                            View My Applications
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary btn-lg">
+                            Return Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string applicationId = DateTime.Now.Ticks.ToString().Substring(8); // Simple ID for demo
+
+    protected override void OnInitialized()
+    {
+        // In a real app, this would come from query parameters or state
+        // applicationId = NavigationManager.GetQueryParameter("id");
+    }
+}
+
