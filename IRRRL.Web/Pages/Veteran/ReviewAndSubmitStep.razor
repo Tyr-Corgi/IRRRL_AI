@@ -29,6 +29,75 @@
                 <small class="text-muted">SSN</small>
                 <div><strong>***-**-@Model.SSN?.Substring(Math.Max(0, Model.SSN.Length - 4))</strong></div>
             </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Citizenship</small>
+                <div><strong>@Model.CitizenshipStatus</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Marital Status</small>
+                <div><strong>@Model.MaritalStatus</strong></div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.SpouseFirstName))
+            {
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted">Spouse Name</small>
+                    <div><strong>@Model.SpouseFirstName @Model.SpouseLastName</strong></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>Current Address</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(2)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12 mb-2">
+                <small class="text-muted">Address</small>
+                <div><strong>@Model.CurrentStreetAddress</strong></div>
+                <div><strong>@Model.CurrentCity, @Model.CurrentState @Model.CurrentZipCode</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Time at Address</small>
+                <div><strong>@Model.YearsAtCurrentAddress years, @Model.MonthsAtCurrentAddress months</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Housing Status</small>
+                <div><strong>@Model.CurrentHousingStatus - $@Model.CurrentMonthlyHousingPayment.ToString("N0")/month</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>Military Service</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(3)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Branch</small>
+                <div><strong>@Model.MilitaryBranch</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Status</small>
+                <div><strong>@Model.MilitaryStatus</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Service Dates</small>
+                <div><strong>@Model.MilitaryServiceStartDate?.ToString("MM/yyyy") - @(Model.MilitaryServiceEndDate?.ToString("MM/yyyy") ?? "Present")</strong></div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.VADisabilityRating))
+            {
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted">VA Disability Rating</small>
+                    <div><strong>@Model.VADisabilityRating%</strong></div>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -36,7 +105,7 @@
 <div class="card mb-3">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <strong>Current Loan Information</strong>
-        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(2)">Edit</button>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(4)">Edit</button>
     </div>
     <div class="card-body">
         <div class="row">
@@ -71,7 +140,7 @@
 <div class="card mb-3">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <strong>Property Information</strong>
-        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(3)">Edit</button>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(5)">Edit</button>
     </div>
     <div class="card-body">
         <div class="row">
@@ -105,13 +174,55 @@
     </div>
 }
 
+<div class="card mb-3">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <strong>Declarations</strong>
+        <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(6)">Edit</button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Intent to Occupy</small>
+                <div><strong>@(Model.IntendToOccupyProperty ? "Yes - Primary Residence" : "No - Not Primary Residence")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Outstanding Judgments</small>
+                <div><strong>@(Model.HasOutstandingJudgments ? "Yes" : "No")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Bankruptcy (7 yrs)</small>
+                <div><strong>@(Model.HasBankruptcy ? $"Yes - {Model.BankruptcyType}" : "No")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Foreclosure (7 yrs)</small>
+                <div><strong>@(Model.HasForeclosure ? "Yes" : "No")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Party to Lawsuit</small>
+                <div><strong>@(Model.IsPartyToLawsuit ? "Yes" : "No")</strong></div>
+            </div>
+            <div class="col-md-6 mb-2">
+                <small class="text-muted">Delinquent Federal Debt</small>
+                <div><strong>@(Model.HasDelinquentFederalDebt ? "Yes" : "No")</strong></div>
+            </div>
+            @if (Model.HasAlimonyChildSupport)
+            {
+                <div class="col-md-6 mb-2">
+                    <small class="text-muted">Alimony/Child Support</small>
+                    <div><strong>$@Model.AlimonyChildSupportAmount?.ToString("N0")/month</strong></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 @if (!string.IsNullOrEmpty(Model.Gender) || !string.IsNullOrEmpty(Model.Ethnicity) || 
      Model.RaceAmericanIndian || Model.RaceAsian || Model.RaceBlack || Model.RacePacificIslander || Model.RaceWhite)
 {
     <div class="card mb-3">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <strong>Demographics (Optional)</strong>
-            <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(4)">Edit</button>
+            <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(7)">Edit</button>
         </div>
         <div class="card-body">
             <div class="row">

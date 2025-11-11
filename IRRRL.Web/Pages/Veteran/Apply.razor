@@ -18,7 +18,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                @for (int i = 1; i <= 5; i++)
+                @for (int i = 1; i <= 8; i++)
                 {
                     var stepNumber = i;
                     var isActive = currentStep == stepNumber;
@@ -41,7 +41,7 @@
                             <div class="fw-bold">@GetStepTitle(stepNumber)</div>
                             <small class="text-muted">@GetStepDescription(stepNumber)</small>
                         </div>
-                        @if (i < 5)
+                        @if (i < 8)
                         {
                             <div class="flex-grow-1 border-top mx-3"></div>
                         }
@@ -64,26 +64,47 @@
                     }
                     else if (currentStep == 2)
                     {
-                        <CurrentLoanStep 
+                        <CurrentAddressStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 3)
                     {
-                        <PropertyInfoStep 
+                        <MilitaryServiceStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 4)
                     {
-                        <DemographicsStep 
+                        <CurrentLoanStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 5)
+                    {
+                        <PropertyInfoStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 6)
+                    {
+                        <DeclarationsStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 7)
+                    {
+                        <DemographicsStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 8)
                     {
                         <ReviewAndSubmitStep 
                             Model="@applicationModel" 
@@ -102,7 +123,7 @@
 
     private void NextStep()
     {
-        if (currentStep < 5)
+        if (currentStep < 8)
         {
             currentStep++;
         }
@@ -121,10 +142,13 @@
         return step switch
         {
             1 => "Personal Info",
-            2 => "Current Loan",
-            3 => "Property Info",
-            4 => "Demographics",
-            5 => "Review & Submit",
+            2 => "Current Address",
+            3 => "Military Service",
+            4 => "Current Loan",
+            5 => "Property Info",
+            6 => "Declarations",
+            7 => "Demographics",
+            8 => "Review & Submit",
             _ => ""
         };
     }
@@ -133,11 +157,14 @@
     {
         return step switch
         {
-            1 => "Your contact information",
-            2 => "Your existing VA loan details",
-            3 => "Property information",
-            4 => "Optional reporting info",
-            5 => "Review and submit application",
+            1 => "Contact & citizenship",
+            2 => "Residency history",
+            3 => "VA eligibility",
+            4 => "Existing VA loan",
+            5 => "Property details",
+            6 => "Legal disclosures",
+            7 => "Optional (HMDA)",
+            8 => "Final review",
             _ => ""
         };
     }
