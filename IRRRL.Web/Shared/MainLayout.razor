@@ -1,0 +1,27 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4 auth">
+            <AuthorizeView>
+                <Authorized>
+                    <span>Welcome, @context.User.Identity?.Name</span>
+                    <a href="/Account/Logout">Logout</a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="/Account/Login">Login</a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
