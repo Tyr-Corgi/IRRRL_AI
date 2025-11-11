@@ -23,8 +23,9 @@ public static class DbInitializer
         // Seed roles
         await SeedRolesAsync(roleManager);
         
-        // Seed default admin user
+        // Seed default users
         await SeedAdminUserAsync(userManager);
+        await SeedTestVeteranAsync(userManager);
     }
     
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
@@ -70,6 +71,35 @@ public static class DbInitializer
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(adminUser, ApplicationConstants.Roles.Administrator);
+            }
+        }
+    }
+    
+    private static async Task SeedTestVeteranAsync(UserManager<ApplicationUser> userManager)
+    {
+        const string veteranEmail = "veteran@irrrl.local";
+        const string veteranPassword = "Veteran@123!"; // Should be changed in production
+        
+        var veteranUser = await userManager.FindByEmailAsync(veteranEmail);
+        
+        if (veteranUser == null)
+        {
+            veteranUser = new ApplicationUser
+            {
+                UserName = veteranEmail,
+                Email = veteranEmail,
+                EmailConfirmed = true,
+                FirstName = "John",
+                LastName = "Veteran",
+                PhoneNumber = "(555) 123-4567",
+                IsActive = true
+            };
+            
+            var result = await userManager.CreateAsync(veteranUser, veteranPassword);
+            
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(veteranUser, ApplicationConstants.Roles.Veteran);
             }
         }
     }

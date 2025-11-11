@@ -13,68 +13,142 @@
     }
 </style>
 
-<div class="container-fluid" style="padding: 0; margin: 0;">
-    <div class="row mb-2" style="margin-top: 0;">
-        <div class="col-12 text-center">
-            <h2 class="mb-1" style="margin-top: 0;">VA IRRRL Processing System</h2>
-            <p class="mb-2">Interest Rate Reduction Refinance Loan</p>
-            
-            <AuthorizeView>
+<div class="container-fluid" style="padding: 10px;">
+    <AuthorizeView>
+        <Authorized>
+            <!-- Logged In View -->
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <h2>Welcome to IRRRL Processing System</h2>
+                    <p class="text-muted">Interest Rate Reduction Refinance Loan</p>
+                </div>
+            </div>
+
+            <!-- Veteran Dashboard -->
+            <AuthorizeView Roles="Veteran" Context="veteranAuth">
                 <Authorized>
-                    <AuthorizeView Roles="Veteran" Context="veteranAuth">
-                        <Authorized>
-                            <a href="/veteran/apply" class="btn btn-primary btn-lg">Start New Application</a>
-                        </Authorized>
-                    </AuthorizeView>
-                    <AuthorizeView Roles="LoanOfficer,Administrator" Context="loanOfficerAuth">
-                        <Authorized>
-                            <a href="/loanofficer/dashboard" class="btn btn-primary btn-lg">Go to Dashboard</a>
-                        </Authorized>
-                    </AuthorizeView>
-                    <AuthorizeView Roles="Underwriter" Context="underwriterAuth">
-                        <Authorized>
-                            <a href="/underwriter/queue" class="btn btn-primary btn-lg">View Queue</a>
-                        </Authorized>
-                    </AuthorizeView>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <h4 class="card-title">Ready to Save Money?</h4>
+                                    <p class="lead">Lower your interest rate and reduce your monthly payment with a VA IRRRL.</p>
+                                    <ul class="mb-4">
+                                        <li>✓ No appraisal required</li>
+                                        <li>✓ Minimal documentation</li>
+                                        <li>✓ Fast processing with AI assistance</li>
+                                        <li>✓ Potential savings of $100-300 per month</li>
+                                    </ul>
+                                    <a href="/veteran/apply" class="btn btn-success btn-lg">
+                                        Start New Application →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <div class="card mb-3">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-1">My Applications</h6>
+                                    <div class="h2 mb-0">0</div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Requirements</h6>
+                                    <ul class="small mb-0">
+                                        <li>Existing VA loan</li>
+                                        <li>0.5% rate reduction</li>
+                                        <li>36-month recoupment</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </Authorized>
-                <NotAuthorized>
-                    <a href="/Account/Login" class="btn btn-primary btn-lg">Login to Get Started</a>
-                </NotAuthorized>
             </AuthorizeView>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-6 mb-2">
-            <div class="card">
-                <div class="card-body py-2">
-                    <h6 class="card-title">What is an IRRRL?</h6>
-                    <p class="card-text small mb-1">
-                        Streamlined refinance for veterans with existing VA loans:
-                    </p>
-                    <ul class="small mb-0">
-                        <li>Lower interest rates</li>
-                        <li>Reduced monthly payments</li>
-                        <li>No appraisal required</li>
-                        <li>Minimal documentation</li>
-                    </ul>
+
+            <!-- Admin/Loan Officer Dashboard -->
+            <AuthorizeView Roles="LoanOfficer,Administrator" Context="staffAuth">
+                <Authorized>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <h4 class="card-title">Dashboard</h4>
+                                    <p>Welcome back! Use the navigation menu to access your tools.</p>
+                                    <a href="/loanofficer/dashboard" class="btn btn-primary">
+                                        Go to Dashboard →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+
+            <!-- Underwriter Dashboard -->
+            <AuthorizeView Roles="Underwriter" Context="underwriterAuth">
+                <Authorized>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="card shadow">
+                                <div class="card-body">
+                                    <h4 class="card-title">Underwriter Queue</h4>
+                                    <p>Review applications ready for final approval.</p>
+                                    <a href="/underwriter/queue" class="btn btn-primary">
+                                        View Queue →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </Authorized>
+
+        <NotAuthorized>
+            <!-- Public View -->
+            <div class="row mb-3">
+                <div class="col-12 text-center">
+                    <h2 class="mb-2">VA IRRRL Processing System</h2>
+                    <p class="lead mb-3">Interest Rate Reduction Refinance Loan</p>
+                    <a href="/Account/Login" class="btn btn-primary btn-lg">Login to Get Started</a>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-6 mb-2">
-            <div class="card">
-                <div class="card-body py-2">
-                    <h6 class="card-title">Key Benefits</h6>
-                    <ul class="small mb-0">
-                        <li><strong>0.5% Funding Fee</strong> - Lower than other VA loans</li>
-                        <li><strong>36-Month Recoupment</strong> - Quick break-even</li>
-                        <li><strong>No Income Verification</strong> - For rate-and-term</li>
-                        <li><strong>AI-Assisted Processing</strong> - Faster turnaround</li>
-                    </ul>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">What is an IRRRL?</h5>
+                            <p>Streamlined refinance for veterans with existing VA loans:</p>
+                            <ul>
+                                <li>Lower interest rates</li>
+                                <li>Reduced monthly payments</li>
+                                <li>No appraisal required</li>
+                                <li>Minimal documentation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Key Benefits</h5>
+                            <ul>
+                                <li><strong>0.5% Funding Fee</strong> - Lower than other VA loans</li>
+                                <li><strong>36-Month Recoupment</strong> - Quick break-even</li>
+                                <li><strong>No Income Verification</strong> - For rate-and-term</li>
+                                <li><strong>AI-Assisted Processing</strong> - Faster turnaround</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
 
