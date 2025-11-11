@@ -18,7 +18,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                @for (int i = 1; i <= 4; i++)
+                @for (int i = 1; i <= 5; i++)
                 {
                     var stepNumber = i;
                     var isActive = currentStep == stepNumber;
@@ -41,7 +41,7 @@
                             <div class="fw-bold">@GetStepTitle(stepNumber)</div>
                             <small class="text-muted">@GetStepDescription(stepNumber)</small>
                         </div>
-                        @if (i < 4)
+                        @if (i < 5)
                         {
                             <div class="flex-grow-1 border-top mx-3"></div>
                         }
@@ -78,6 +78,13 @@
                     }
                     else if (currentStep == 4)
                     {
+                        <DemographicsStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 5)
+                    {
                         <ReviewAndSubmitStep 
                             Model="@applicationModel" 
                             OnBack="PreviousStep" 
@@ -95,7 +102,7 @@
 
     private void NextStep()
     {
-        if (currentStep < 4)
+        if (currentStep < 5)
         {
             currentStep++;
         }
@@ -116,7 +123,8 @@
             1 => "Personal Info",
             2 => "Current Loan",
             3 => "Property Info",
-            4 => "Review & Submit",
+            4 => "Demographics",
+            5 => "Review & Submit",
             _ => ""
         };
     }
@@ -128,7 +136,8 @@
             1 => "Your contact information",
             2 => "Your existing VA loan details",
             3 => "Property information",
-            4 => "Review and submit application",
+            4 => "Optional reporting info",
+            5 => "Review and submit application",
             _ => ""
         };
     }

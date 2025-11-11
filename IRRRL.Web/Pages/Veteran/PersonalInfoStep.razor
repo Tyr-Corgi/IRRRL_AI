@@ -3,8 +3,7 @@
 <h4 class="mb-4">Personal Information</h4>
 
 <div class="alert alert-info mb-4">
-    <strong>📋 Note:</strong> Your loan officer will verify this information with you. 
-    Demographic information is optional and can be skipped.
+    <strong>📋 Note:</strong> Your loan officer will verify this information with you.
 </div>
 
 <EditForm Model="@Model" OnValidSubmit="HandleNext">
@@ -39,7 +38,7 @@
         </div>
     </div>
 
-    <div class="row mb-3">
+    <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">Phone Number <span class="text-danger">*</span></label>
             <InputText @bind-Value="Model.PhoneNumber" class="form-control" placeholder="(555) 123-4567" />
@@ -50,66 +49,6 @@
             <label class="form-label">Email Address <span class="text-danger">*</span></label>
             <InputText @bind-Value="Model.Email" class="form-control" placeholder="john.smith@email.com" type="email" />
             <ValidationMessage For="@(() => Model.Email)" class="text-danger" />
-        </div>
-    </div>
-
-    <hr class="my-4" />
-
-    <h5 class="mb-3">Demographic Information <span class="badge bg-secondary">Optional</span></h5>
-    <p class="text-muted small">This information is used for government reporting purposes only and does not affect your loan approval.</p>
-
-    <div class="row">
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Gender</label>
-            <InputSelect @bind-Value="Model.Gender" class="form-select">
-                <option value="">Prefer not to say</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </InputSelect>
-        </div>
-
-        <div class="col-md-6 mb-3">
-            <label class="form-label">Ethnicity</label>
-            <InputSelect @bind-Value="Model.Ethnicity" class="form-select">
-                <option value="">Prefer not to say</option>
-                <option value="HispanicLatino">Hispanic or Latino</option>
-                <option value="NotHispanicLatino">Not Hispanic or Latino</option>
-            </InputSelect>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Race (Select all that apply)</label>
-        <div class="form-check">
-            <InputCheckbox @bind-Value="Model.RaceAmericanIndian" class="form-check-input" id="raceAmericanIndian" />
-            <label class="form-check-label" for="raceAmericanIndian">
-                American Indian or Alaska Native
-            </label>
-        </div>
-        <div class="form-check">
-            <InputCheckbox @bind-Value="Model.RaceAsian" class="form-check-input" id="raceAsian" />
-            <label class="form-check-label" for="raceAsian">
-                Asian
-            </label>
-        </div>
-        <div class="form-check">
-            <InputCheckbox @bind-Value="Model.RaceBlack" class="form-check-input" id="raceBlack" />
-            <label class="form-check-label" for="raceBlack">
-                Black or African American
-            </label>
-        </div>
-        <div class="form-check">
-            <InputCheckbox @bind-Value="Model.RacePacificIslander" class="form-check-input" id="racePacificIslander" />
-            <label class="form-check-label" for="racePacificIslander">
-                Native Hawaiian or Other Pacific Islander
-            </label>
-        </div>
-        <div class="form-check">
-            <InputCheckbox @bind-Value="Model.RaceWhite" class="form-check-input" id="raceWhite" />
-            <label class="form-check-label" for="raceWhite">
-                White
-            </label>
         </div>
     </div>
 

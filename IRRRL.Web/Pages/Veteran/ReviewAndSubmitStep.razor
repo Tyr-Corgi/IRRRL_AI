@@ -105,6 +105,50 @@
     </div>
 }
 
+@if (!string.IsNullOrEmpty(Model.Gender) || !string.IsNullOrEmpty(Model.Ethnicity) || 
+     Model.RaceAmericanIndian || Model.RaceAsian || Model.RaceBlack || Model.RacePacificIslander || Model.RaceWhite)
+{
+    <div class="card mb-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <strong>Demographics (Optional)</strong>
+            <button type="button" class="btn btn-sm btn-light" @onclick="() => EditStep(4)">Edit</button>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @if (!string.IsNullOrEmpty(Model.Gender))
+                {
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted">Gender</small>
+                        <div><strong>@Model.Gender</strong></div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Ethnicity))
+                {
+                    <div class="col-md-6 mb-2">
+                        <small class="text-muted">Ethnicity</small>
+                        <div><strong>@Model.Ethnicity</strong></div>
+                    </div>
+                }
+            </div>
+            @{
+                var selectedRaces = new List<string>();
+                if (Model.RaceAmericanIndian) selectedRaces.Add("American Indian or Alaska Native");
+                if (Model.RaceAsian) selectedRaces.Add("Asian");
+                if (Model.RaceBlack) selectedRaces.Add("Black or African American");
+                if (Model.RacePacificIslander) selectedRaces.Add("Native Hawaiian or Other Pacific Islander");
+                if (Model.RaceWhite) selectedRaces.Add("White");
+            }
+            @if (selectedRaces.Any())
+            {
+                <div class="mt-2">
+                    <small class="text-muted">Race</small>
+                    <div><strong>@string.Join(", ", selectedRaces)</strong></div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
 <div class="alert alert-info">
     <h5 class="alert-heading">📋 What Happens Next</h5>
     <p class="mb-2">A loan officer will:</p>
