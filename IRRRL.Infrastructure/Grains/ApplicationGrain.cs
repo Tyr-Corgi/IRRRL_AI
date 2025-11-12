@@ -219,7 +219,7 @@ public class ApplicationGrain : Grain, IApplicationGrain
     {
         if (_application == null)
         {
-            return Task.FromResult(new ApplicationStatisticsDto(0, 0, 0, ApplicationStatus.Draft, DateTime.UtcNow));
+            return Task.FromResult(new ApplicationStatisticsDto(0, 0, 0, ApplicationStatus.Submitted, DateTime.UtcNow));
         }
 
         var stats = new ApplicationStatisticsDto(
@@ -227,7 +227,7 @@ public class ApplicationGrain : Grain, IApplicationGrain
             OpenActionItemsCount: _application.ActionItems.Count(ai => ai.Status != ActionItemStatus.Completed),
             NotesCount: _application.Notes.Count,
             CurrentStatus: _application.Status,
-            LastUpdated: _application.UpdatedAt
+            LastUpdated: _application.UpdatedAt ?? _application.CreatedAt
         );
 
         return Task.FromResult(stats);
