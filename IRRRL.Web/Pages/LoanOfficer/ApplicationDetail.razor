@@ -2,6 +2,7 @@
 @attribute [Authorize(Roles = "LoanOfficer")]
 @using Microsoft.AspNetCore.Authorization
 @using static IRRRL.Web.Pages.Veteran.Apply
+@using IRRRL.Web.Pages.LoanOfficer.Components
 @inject NavigationManager NavigationManager
 
 <PageTitle>Application Review - @applicationNumber</PageTitle>
@@ -78,11 +79,15 @@ else
             }
             else if (activeTab == "documents")
             {
-                <DocumentsTab ApplicationId="@ApplicationId" @bind-DocumentsNeededCount="documentsNeededCount" />
+                <DocumentsTab ApplicationId="@ApplicationId" 
+                             DocumentsNeededCount="@documentsNeededCount" 
+                             DocumentsNeededCountChanged="@((int count) => documentsNeededCount = count)" />
             }
             else if (activeTab == "actions")
             {
-                <ActionItemsTab ApplicationId="@ApplicationId" @bind-OpenItemsCount="openActionItemsCount" />
+                <ActionItemsTab ApplicationId="@ApplicationId" 
+                               OpenItemsCount="@openActionItemsCount" 
+                               OpenItemsCountChanged="@((int count) => openActionItemsCount = count)" />
             }
             else if (activeTab == "calculator")
             {
@@ -90,7 +95,9 @@ else
             }
             else if (activeTab == "notes")
             {
-                <NotesTab ApplicationId="@ApplicationId" @bind-NotesCount="notesCount" />
+                <NotesTab ApplicationId="@ApplicationId" 
+                         NotesCount="@notesCount" 
+                         NotesCountChanged="@((int count) => notesCount = count)" />
             }
         </div>
     </div>

@@ -25,7 +25,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">New Applications</h6>
-                            <h2 class="mb-0">@newApplications.Count</h2>
+                            <h2 class="mb-0">@stats.NewCount</h2>
                         </div>
                         <div class="stats-icon">
                             <span class="oi oi-file" aria-hidden="true"></span>
@@ -41,7 +41,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">In Progress</h6>
-                            <h2 class="mb-0">@inProgressApplications.Count</h2>
+                            <h2 class="mb-0">@stats.InProgressCount</h2>
                         </div>
                         <div class="stats-icon">
                             <span class="oi oi-clock" aria-hidden="true"></span>
@@ -57,7 +57,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Ready for Review</h6>
-                            <h2 class="mb-0">@readyForReviewApplications.Count</h2>
+                            <h2 class="mb-0">@stats.ReadyForReviewCount</h2>
                         </div>
                         <div class="stats-icon">
                             <span class="oi oi-eye" aria-hidden="true"></span>
@@ -73,7 +73,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted mb-1">Completed (30d)</h6>
-                            <h2 class="mb-0">@completedApplications.Count</h2>
+                            <h2 class="mb-0">@stats.CompletedLast30DaysCount</h2>
                         </div>
                         <div class="stats-icon">
                             <span class="oi oi-check" aria-hidden="true"></span>
@@ -274,69 +274,32 @@
 
     private async Task LoadApplications()
     {
-        // TODO: Load from database
-        // Simulated data for now
-        allApplications = new List<ApplicationSummary>
-        {
-            new ApplicationSummary
-            {
-                Id = 1,
-                ApplicationNumber = "IRRRL-2025-001",
-                VeteranName = "John Smith",
-                PhoneNumber = "(555) 123-4567",
-                PropertyAddress = "123 Main St",
-                PropertyCity = "San Diego",
-                PropertyState = "CA",
-                PropertyZip = "92101",
-                CurrentRate = 4.5m,
-                CurrentMonthlyPayment = 1500,
-                LoanNumber = "12-3456789",
-                Status = "New",
-                SubmittedDate = DateTime.Now.AddDays(-2),
-                ActionItemsCount = 5
-            },
-            new ApplicationSummary
-            {
-                Id = 2,
-                ApplicationNumber = "IRRRL-2025-002",
-                VeteranName = "Jane Doe",
-                PhoneNumber = "(555) 987-6543",
-                PropertyAddress = "456 Oak Ave",
-                PropertyCity = "Phoenix",
-                PropertyState = "AZ",
-                PropertyZip = "85001",
-                CurrentRate = 5.25m,
-                CurrentMonthlyPayment = 1800,
-                LoanNumber = "98-7654321",
-                Status = "InProgress",
-                SubmittedDate = DateTime.Now.AddDays(-5),
-                ActionItemsCount = 2
-            },
-            new ApplicationSummary
-            {
-                Id = 3,
-                ApplicationNumber = "IRRRL-2025-003",
-                VeteranName = "Robert Johnson",
-                PhoneNumber = "(555) 456-7890",
-                PropertyAddress = "789 Pine Rd",
-                PropertyCity = "Austin",
-                PropertyState = "TX",
-                PropertyZip = "73301",
-                CurrentRate = 4.875m,
-                CurrentMonthlyPayment = 2100,
-                LoanNumber = "45-6789012",
-                Status = "ReadyForReview",
-                SubmittedDate = DateTime.Now.AddDays(-7),
-                ActionItemsCount = 0
-            }
-        };
-
-        newApplications = allApplications.Where(a => a.Status == "New").ToList();
-        inProgressApplications = allApplications.Where(a => a.Status == "InProgress").ToList();
-        readyForReviewApplications = allApplications.Where(a => a.Status == "ReadyForReview").ToList();
-        completedApplications = allApplications.Where(a => a.Status == "Completed").ToList();
+        isLoading = true;
         
-        await Task.CompletedTask;
+        // Load from database
+        var applications = await LoanOfficerService.GetAllApplicationsAsync();
+        stats = await LoanOfficerService.GetStatisticsAsync();
+        
+        // Map to summary view model
+        allApplications = applications.Select(a => new ApplicationSummary
+        {
+            Id = a.Id,
+            ApplicationNumber = a.ApplicationNumber,
+            VeteranName = $"{a.Borrower.FirstName} {a.Borrower.LastName}",
+            PhoneNumber = a.Borrower.Phone,
+            PropertyAddress = a.Property.StreetAddress,
+            PropertyCity = a.Property.City,
+            PropertyState = a.Property.State,
+            PropertyZip = a.Property.ZipCode,
+            CurrentRate = a.CurrentLoan?.InterestRate ?? 0,
+            CurrentMonthlyPayment = a.CurrentLoan?.TotalMonthlyPayment ?? 0,
+            LoanNumber = a.CurrentLoan?.LoanNumber ?? "",
+            Status = a.Status,
+            SubmittedDate = a.SubmittedDate ?? a.CreatedAt,
+            ActionItemsCount = a.ActionItems.Count(ai => ai.Status != ActionItemStatus.Completed)
+        }).ToList();
+        
+        isLoading = false;
     }
 
     private async Task RefreshApplications()
@@ -349,26 +312,34 @@
         NavigationManager.NavigateTo($"/loanofficer/application/{applicationId}");
     }
 
-    private string GetStatusBadgeClass(string status) => status switch
+    private string GetStatusBadgeClass(ApplicationStatus status) => status switch
     {
-        "New" => "bg-primary",
-        "InProgress" => "bg-warning",
-        "DocumentsNeeded" => "bg-danger",
-        "ReadyForReview" => "bg-info",
-        "Underwriting" => "bg-secondary",
-        "Completed" => "bg-success",
+        ApplicationStatus.Submitted => "bg-primary",
+        ApplicationStatus.DocumentGathering => "bg-warning",
+        ApplicationStatus.AIProcessing => "bg-info",
+        ApplicationStatus.FilePreparation => "bg-info",
+        ApplicationStatus.UnderwriterReady => "bg-success",
+        ApplicationStatus.InUnderwriting => "bg-secondary",
+        ApplicationStatus.Approved => "bg-success",
+        ApplicationStatus.Closed => "bg-success",
+        ApplicationStatus.Declined => "bg-danger",
+        ApplicationStatus.Cancelled => "bg-secondary",
         _ => "bg-secondary"
     };
 
-    private string GetStatusDisplay(string status) => status switch
+    private string GetStatusDisplay(ApplicationStatus status) => status switch
     {
-        "New" => "New",
-        "InProgress" => "In Progress",
-        "DocumentsNeeded" => "Docs Needed",
-        "ReadyForReview" => "Ready",
-        "Underwriting" => "Underwriting",
-        "Completed" => "Complete",
-        _ => status
+        ApplicationStatus.Submitted => "New",
+        ApplicationStatus.DocumentGathering => "Docs Needed",
+        ApplicationStatus.AIProcessing => "Processing",
+        ApplicationStatus.FilePreparation => "Preparing",
+        ApplicationStatus.UnderwriterReady => "Ready",
+        ApplicationStatus.InUnderwriting => "Underwriting",
+        ApplicationStatus.Approved => "Approved",
+        ApplicationStatus.Closed => "Closed",
+        ApplicationStatus.Declined => "Declined",
+        ApplicationStatus.Cancelled => "Cancelled",
+        _ => status.ToString()
     };
 
     private int GetDaysAgo(DateTime date) => (DateTime.Now - date).Days;
@@ -386,7 +357,7 @@
         public decimal CurrentRate { get; set; }
         public decimal CurrentMonthlyPayment { get; set; }
         public string LoanNumber { get; set; } = "";
-        public string Status { get; set; } = "";
+        public ApplicationStatus Status { get; set; }
         public DateTime SubmittedDate { get; set; }
         public int ActionItemsCount { get; set; }
     }

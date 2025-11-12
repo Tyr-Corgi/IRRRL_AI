@@ -26,31 +26,31 @@
                             <label class="form-label small">Loan Amount</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" @bind="currentLoanAmount" @bind:event="oninput" @onchange="Calculate" />
+                                <input type="number" class="form-control" @bind="currentLoanAmount" @bind:event="oninput" @bind:after="Calculate" />
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Interest Rate (%)</label>
-                            <input type="number" class="form-control" step="0.001" @bind="currentInterestRate" @bind:event="oninput" @onchange="Calculate" />
+                            <input type="number" class="form-control" step="0.001" @bind="currentInterestRate" @bind:event="oninput" @bind:after="Calculate" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Monthly P&I Payment</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" @bind="currentMonthlyPayment" @bind:event="oninput" @onchange="Calculate" />
+                                <input type="number" class="form-control" @bind="currentMonthlyPayment" @bind:event="oninput" @bind:after="Calculate" />
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Remaining Term (months)</label>
-                            <input type="number" class="form-control" @bind="currentRemainingTerm" @bind:event="oninput" @onchange="Calculate" />
+                            <input type="number" class="form-control" @bind="currentRemainingTerm" @bind:event="oninput" @bind:after="Calculate" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Loan Type</label>
-                            <select class="form-select" @bind="currentLoanType" @onchange="Calculate">
+                            <select class="form-select" @bind="currentLoanType" @bind:after="Calculate">
                                 <option value="Fixed">Fixed Rate</option>
                                 <option value="ARM">ARM (Adjustable)</option>
                             </select>
@@ -65,32 +65,32 @@
                             <label class="form-label small">Loan Amount</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" @bind="newLoanAmount" @bind:event="oninput" @onchange="Calculate" />
+                                <input type="number" class="form-control" @bind="newLoanAmount" @bind:event="oninput" @bind:after="Calculate" />
                             </div>
                             <small class="text-muted">Include funding fee if rolled in</small>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Interest Rate (%)</label>
-                            <input type="number" class="form-control" step="0.001" @bind="newInterestRate" @bind:event="oninput" @onchange="Calculate" />
+                            <input type="number" class="form-control" step="0.001" @bind="newInterestRate" @bind:event="oninput" @bind:after="Calculate" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">New Term (months)</label>
-                            <input type="number" class="form-control" @bind="newTerm" @bind:event="oninput" @onchange="Calculate" />
+                            <input type="number" class="form-control" @bind="newTerm" @bind:event="oninput" @bind:after="Calculate" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Total Closing Costs</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" @bind="closingCosts" @bind:event="oninput" @onchange="Calculate" />
+                                <input type="number" class="form-control" @bind="closingCosts" @bind:event="oninput" @bind:after="Calculate" />
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small">Disability Rating</label>
-                            <select class="form-select" @bind="disabilityRating" @onchange="Calculate">
+                            <select class="form-select" @bind="disabilityRating" @bind:after="Calculate">
                                 <option value="0">No Disability (0.5% fee)</option>
                                 <option value="10">10% or higher (Waived)</option>
                             </select>
