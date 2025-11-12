@@ -40,7 +40,8 @@ public record ApplicationSummaryDto(
     string LoanNumber,
     ApplicationStatus Status,
     DateTime SubmittedDate,
-    int OpenActionItemsCount
+    int OpenActionItemsCount,
+    int ActionItemsCount  // For backward compatibility with UI
 );
 
 /// <summary>
@@ -98,22 +99,28 @@ public class GetDashboardHandler : IRequestHandler<GetDashboardQuery, GetDashboa
             .ToListAsync(cancellationToken);
 
         // Project to DTOs
-        var applicationDtos = applications.Select(a => new ApplicationSummaryDto(
-            Id: a.Id,
-            ApplicationNumber: a.ApplicationNumber,
-            VeteranName: $"{a.Borrower.FirstName} {a.Borrower.LastName}",
-            PhoneNumber: a.Borrower.Phone,
-            PropertyAddress: a.Property.StreetAddress,
-            PropertyCity: a.Property.City,
-            PropertyState: a.Property.State,
-            PropertyZip: a.Property.ZipCode,
-            CurrentRate: a.CurrentLoan?.InterestRate ?? 0,
-            CurrentMonthlyPayment: a.CurrentLoan?.TotalMonthlyPayment ?? 0,
-            LoanNumber: a.CurrentLoan?.LoanNumber ?? "",
-            Status: a.Status,
-            SubmittedDate: a.SubmittedDate ?? a.CreatedAt,
-            OpenActionItemsCount: a.ActionItems.Count(ai => ai.Status != ActionItemStatus.Completed)
-        )).ToList();
+        var openActionItemsCount = 0;
+        var applicationDtos = applications.Select(a =>
+        {
+            openActionItemsCount = a.ActionItems.Count(ai => ai.Status != ActionItemStatus.Completed);
+            return new ApplicationSummaryDto(
+                Id: a.Id,
+                ApplicationNumber: a.ApplicationNumber,
+                VeteranName: $"{a.Borrower.FirstName} {a.Borrower.LastName}",
+                PhoneNumber: a.Borrower.Phone,
+                PropertyAddress: a.Property.StreetAddress,
+                PropertyCity: a.Property.City,
+                PropertyState: a.Property.State,
+                PropertyZip: a.Property.ZipCode,
+                CurrentRate: a.CurrentLoan?.InterestRate ?? 0,
+                CurrentMonthlyPayment: a.CurrentLoan?.TotalMonthlyPayment ?? 0,
+                LoanNumber: a.CurrentLoan?.LoanNumber ?? "",
+                Status: a.Status,
+                SubmittedDate: a.SubmittedDate ?? a.CreatedAt,
+                OpenActionItemsCount: openActionItemsCount,
+                ActionItemsCount: openActionItemsCount  // Same value for compatibility
+            );
+        }).ToList();
 
         // Calculate statistics
         var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);

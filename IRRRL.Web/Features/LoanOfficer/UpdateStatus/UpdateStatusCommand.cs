@@ -69,8 +69,8 @@ public class UpdateStatusHandler : IRequestHandler<UpdateStatusCommand, Result>
         var historyEntry = new ApplicationStatusHistory
         {
             IRRRLApplicationId = application.Id,
-            OldStatus = oldStatus,
-            NewStatus = request.NewStatus,
+            FromStatus = oldStatus,
+            ToStatus = request.NewStatus,
             ChangedAt = DateTime.UtcNow,
             Notes = request.Notes
         };

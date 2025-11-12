@@ -3,6 +3,7 @@ using IRRRL.Core.Enums;
 using IRRRL.Infrastructure.Data;
 using IRRRL.Web.Features.Common;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace IRRRL.Web.Features.Veteran.SubmitApplication;
 
@@ -59,8 +60,8 @@ public class SubmitApplicationHandler
         _context.ApplicationStatusHistories.Add(new ApplicationStatusHistory
         {
             IRRRLApplication = request.Application,
-            OldStatus = ApplicationStatus.Draft,
-            NewStatus = ApplicationStatus.Submitted,
+            FromStatus = ApplicationStatus.Submitted,
+            ToStatus = ApplicationStatus.Submitted,
             ChangedAt = DateTime.UtcNow,
             Notes = "Application submitted by veteran"
         });

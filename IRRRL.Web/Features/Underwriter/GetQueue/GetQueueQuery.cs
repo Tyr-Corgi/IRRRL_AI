@@ -86,13 +86,14 @@ public class GetQueueHandler : IRequestHandler<GetQueueQuery, GetQueueResult>
                 a.Status == ApplicationStatus.InUnderwriting)
             .AsQueryable();
 
-        if (!string.IsNullOrEmpty(request.UnderwriterId))
-        {
-            query = query.Where(a => a.AssignedUnderwriterId == request.UnderwriterId);
-        }
+        // Note: AssignedUnderwriterId not yet in schema - would filter if it existed
+        // if (!string.IsNullOrEmpty(request.UnderwriterId))
+        // {
+        //     query = query.Where(a => a.AssignedUnderwriterId == request.UnderwriterId);
+        // }
 
         var applications = await query
-            .OrderBy(a => a.SubmittedToUnderwritingDate) // FIFO queue
+            .OrderBy(a => a.SubmittedDate) // FIFO queue by submission date
             .ToListAsync(cancellationToken);
 
         // Project to underwriter-specific DTOs
@@ -106,10 +107,10 @@ public class GetQueueHandler : IRequestHandler<GetQueueQuery, GetQueueResult>
             MonthlySavings: a.EstimatedMonthlySavings,
             MeetsNTB: a.MeetsNetTangibleBenefit,
             RecoupmentMonths: a.RecoupmentPeriodMonths,
-            SubmittedToUnderwriting: a.SubmittedToUnderwritingDate ?? DateTime.UtcNow,
-            DaysInQueue: a.SubmittedToUnderwritingDate.HasValue 
-                ? (DateTime.UtcNow - a.SubmittedToUnderwritingDate.Value).Days 
-                : 0,
+            SubmittedToUnderwriting: a.SubmittedDate ?? a.CreatedAt,
+            DaysInQueue: a.SubmittedDate.HasValue 
+                ? (DateTime.UtcNow - a.SubmittedDate.Value).Days 
+                : (DateTime.UtcNow - a.CreatedAt).Days,
             HasAllDocuments: a.Documents.All(d => d.IsComplete),
             Priority: DeterminePriority(a)
         )).ToList();
@@ -134,9 +135,8 @@ public class GetQueueHandler : IRequestHandler<GetQueueQuery, GetQueueResult>
     private static string DeterminePriority(IRRRLApplication app)
     {
         // Business logic for priority - underwriter-specific!
-        var daysWaiting = app.SubmittedToUnderwritingDate.HasValue
-            ? (DateTime.UtcNow - app.SubmittedToUnderwritingDate.Value).Days
-            : 0;
+        var submittedDate = app.SubmittedDate ?? app.CreatedAt;
+        var daysWaiting = (DateTime.UtcNow - submittedDate).Days;
 
         if (daysWaiting > 5) return "HIGH";
         if (daysWaiting > 2) return "MEDIUM";

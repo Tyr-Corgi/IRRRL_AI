@@ -26,13 +26,14 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
         
         _logger.LogInformation("Handling {RequestName}", requestName);
         
-        var stopwatch = Stopwatch.StartTime();
+        var stopwatch = Stopwatch.StartNew();
         
         try
         {
             var response = await next();
             
-            var elapsed = stopwatch.GetElapsedTime();
+            stopwatch.Stop();
+            var elapsed = stopwatch.Elapsed;
             _logger.LogInformation(
                 "Handled {RequestName} in {ElapsedMilliseconds}ms",
                 requestName,
@@ -42,7 +43,8 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
         }
         catch (Exception ex)
         {
-            var elapsed = stopwatch.GetElapsedTime();
+            stopwatch.Stop();
+            var elapsed = stopwatch.Elapsed;
             _logger.LogError(
                 ex,
                 "Error handling {RequestName} after {ElapsedMilliseconds}ms",
