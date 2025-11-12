@@ -93,10 +93,16 @@ builder.Services.AddScoped<IDocumentGenerator, QuestPDFDocumentGenerator>();
 
 // Infrastructure Services
 builder.Services.AddScoped<IApplicationNotificationService, ApplicationNotificationService>();
-builder.Services.AddScoped<ILoanOfficerService, LoanOfficerService>();
+// ILoanOfficerService removed - now using Vertical Slice Architecture with MediatR
 
-// MediatR for CQRS
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+// MediatR for CQRS (Vertical Slice Architecture)
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    
+    // Add pipeline behaviors (order matters!)
+    cfg.AddOpenBehavior(typeof(IRRRL.Web.Features.Common.Behaviors.LoggingBehavior<,>));
+});
 
 // Add authorization policies
 builder.Services.AddAuthorization(options =>

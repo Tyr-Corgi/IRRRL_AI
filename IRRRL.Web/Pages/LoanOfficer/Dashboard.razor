@@ -1,10 +1,11 @@
 @page "/loanofficer/dashboard"
 @attribute [Authorize(Roles = "LoanOfficer")]
 @using Microsoft.AspNetCore.Authorization
-@using IRRRL.Core.Interfaces
 @using IRRRL.Core.Enums
+@using IRRRL.Web.Features.LoanOfficer.GetDashboard
+@using MediatR
 @inject NavigationManager NavigationManager
-@inject ILoanOfficerService LoanOfficerService
+@inject IMediator Mediator
 
 <PageTitle>Loan Officer Dashboard - IRRRL</PageTitle>
 
@@ -236,27 +237,10 @@
     private string statusFilter = "";
     private bool isLoading = true;
 
-    private List<ApplicationSummary> allApplications = new();
-    private ApplicationStatistics stats = new();
+    private List<ApplicationSummaryDto> allApplications = new();
+    private DashboardStatistics stats = new(0, 0, 0, 0);
 
-    private List<ApplicationSummary> newApplications => 
-        allApplications.Where(a => a.Status == ApplicationStatus.Submitted).ToList();
-    
-    private List<ApplicationSummary> inProgressApplications => 
-        allApplications.Where(a => 
-            a.Status == ApplicationStatus.DocumentGathering || 
-            a.Status == ApplicationStatus.AIProcessing ||
-            a.Status == ApplicationStatus.FilePreparation).ToList();
-    
-    private List<ApplicationSummary> readyForReviewApplications => 
-        allApplications.Where(a => a.Status == ApplicationStatus.UnderwriterReady).ToList();
-    
-    private List<ApplicationSummary> completedApplications => 
-        allApplications.Where(a => 
-            a.Status == ApplicationStatus.Closed || 
-            a.Status == ApplicationStatus.Approved).ToList();
-
-    private List<ApplicationSummary> filteredApplications => 
+    private List<ApplicationSummaryDto> filteredApplications => 
         allApplications
             .Where(a => 
                 (string.IsNullOrWhiteSpace(searchQuery) || 
@@ -276,28 +260,12 @@
     {
         isLoading = true;
         
-        // Load from database
-        var applications = await LoanOfficerService.GetAllApplicationsAsync();
-        stats = await LoanOfficerService.GetStatisticsAsync();
+        // VERTICAL SLICE: Send query through MediatR
+        // No service layer! Query handler does everything.
+        var result = await Mediator.Send(new GetDashboardQuery());
         
-        // Map to summary view model
-        allApplications = applications.Select(a => new ApplicationSummary
-        {
-            Id = a.Id,
-            ApplicationNumber = a.ApplicationNumber,
-            VeteranName = $"{a.Borrower.FirstName} {a.Borrower.LastName}",
-            PhoneNumber = a.Borrower.Phone,
-            PropertyAddress = a.Property.StreetAddress,
-            PropertyCity = a.Property.City,
-            PropertyState = a.Property.State,
-            PropertyZip = a.Property.ZipCode,
-            CurrentRate = a.CurrentLoan?.InterestRate ?? 0,
-            CurrentMonthlyPayment = a.CurrentLoan?.TotalMonthlyPayment ?? 0,
-            LoanNumber = a.CurrentLoan?.LoanNumber ?? "",
-            Status = a.Status,
-            SubmittedDate = a.SubmittedDate ?? a.CreatedAt,
-            ActionItemsCount = a.ActionItems.Count(ai => ai.Status != ActionItemStatus.Completed)
-        }).ToList();
+        allApplications = result.Applications;
+        stats = result.Statistics;
         
         isLoading = false;
     }
@@ -343,23 +311,5 @@
     };
 
     private int GetDaysAgo(DateTime date) => (DateTime.Now - date).Days;
-
-    private class ApplicationSummary
-    {
-        public int Id { get; set; }
-        public string ApplicationNumber { get; set; } = "";
-        public string VeteranName { get; set; } = "";
-        public string PhoneNumber { get; set; } = "";
-        public string PropertyAddress { get; set; } = "";
-        public string PropertyCity { get; set; } = "";
-        public string PropertyState { get; set; } = "";
-        public string PropertyZip { get; set; } = "";
-        public decimal CurrentRate { get; set; }
-        public decimal CurrentMonthlyPayment { get; set; }
-        public string LoanNumber { get; set; } = "";
-        public ApplicationStatus Status { get; set; }
-        public DateTime SubmittedDate { get; set; }
-        public int ActionItemsCount { get; set; }
-    }
 }
 
