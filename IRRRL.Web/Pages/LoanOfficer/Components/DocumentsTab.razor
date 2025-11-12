@@ -1,0 +1,349 @@
+@inject IJSRuntime JS
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info mb-4">
+            <h5><span class="oi oi-info"></span> Document Collection for IRRRL</h5>
+            <p class="mb-0">Track and manage required documents for this streamline refinance. The AI will help identify which documents are critical based on the veteran's submission.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Document Checklist -->
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><span class="oi oi-task"></span> Document Checklist</h5>
+                <button class="btn btn-sm btn-primary" @onclick="GenerateAIChecklist">
+                    <span class="oi oi-bolt"></span> AI Generate List
+                </button>
+            </div>
+            <div class="card-body p-0">
+                @if (documents.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var doc in documents)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="doc-@doc.Id" checked="@doc.IsReceived" @onchange="() => ToggleDocument(doc.Id)">
+                                            <label class="form-check-label fw-bold" for="doc-@doc.Id">
+                                                @doc.Name
+                                                @if (doc.IsRequired)
+                                                {
+                                                    <span class="badge bg-danger ms-2">Required</span>
+                                                }
+                                                @if (doc.Priority == "High")
+                                                {
+                                                    <span class="badge bg-warning text-dark ms-1">High Priority</span>
+                                                }
+                                            </label>
+                                        </div>
+                                        <div class="ms-4 mt-1">
+                                            <small class="text-muted">@doc.Description</small>
+                                            @if (doc.IsReceived)
+                                            {
+                                                <div class="mt-1">
+                                                    <small class="text-success">
+                                                        <span class="oi oi-check"></span> Received on @doc.ReceivedDate?.ToString("MM/dd/yyyy")
+                                                    </small>
+                                                </div>
+                                            }
+                                            else if (!string.IsNullOrEmpty(doc.RequestedDate))
+                                            {
+                                                <div class="mt-1">
+                                                    <small class="text-warning">
+                                                        <span class="oi oi-clock"></span> Requested from veteran on @doc.RequestedDate
+                                                    </small>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="btn-group ms-3">
+                                        @if (!doc.IsReceived)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" @onclick="() => RequestDocument(doc.Id)">
+                                                <span class="oi oi-envelope-closed"></span> Request
+                                            </button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => UploadDocument(doc.Id)">
+                                            <span class="oi oi-cloud-upload"></span> Upload
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">No documents in checklist. Click "AI Generate List" to create a personalized document list.</p>
+                    </div>
+                }
+            </div>
+            @if (documents.Any())
+            {
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>Progress:</strong> @documents.Count(d => d.IsReceived) of @documents.Count documents received
+                        </div>
+                        <div class="progress" style="width: 200px; height: 25px;">
+                            <div class="progress-bar @(completionPercentage == 100 ? "bg-success" : "")" 
+                                 role="progressbar" 
+                                 style="width: @completionPercentage%"
+                                 aria-valuenow="@completionPercentage" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                @completionPercentage%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Add Custom Document -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><span class="oi oi-plus"></span> Add Custom Document</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <input type="text" class="form-control" placeholder="Document Name" @bind="newDocumentName" />
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <select class="form-select" @bind="newDocumentPriority">
+                            <option value="Normal">Normal Priority</option>
+                            <option value="High">High Priority</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-2">
+                        <button class="btn btn-primary w-100" @onclick="AddCustomDocument" disabled="@string.IsNullOrWhiteSpace(newDocumentName)">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload History & Actions -->
+    <div class="col-lg-4 mb-3">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><span class="oi oi-document"></span> Uploaded Documents</h6>
+            </div>
+            <div class="card-body">
+                @if (uploadedFiles.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var file in uploadedFiles)
+                        {
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold small">@file.FileName</div>
+                                        <small class="text-muted">@file.UploadedDate.ToString("MM/dd/yyyy hh:mm tt")</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-danger" @onclick="() => DeleteFile(file.Id)">
+                                        <span class="oi oi-trash"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">No files uploaded yet</p>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><span class="oi oi-info"></span> Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <button class="btn btn-outline-primary w-100 mb-2" @onclick="SendDocumentRequest">
+                    <span class="oi oi-envelope-closed"></span> Email Document Request
+                </button>
+                <button class="btn btn-outline-secondary w-100 mb-2" @onclick="GenerateDocumentList">
+                    <span class="oi oi-print"></span> Print Document List
+                </button>
+                <button class="btn btn-outline-info w-100" @onclick="ViewDocumentGuide">
+                    <span class="oi oi-book"></span> View VA Guidelines
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int ApplicationId { get; set; }
+
+    [Parameter]
+    public int DocumentsNeededCount { get; set; }
+
+    [Parameter]
+    public EventCallback<int> DocumentsNeededCountChanged { get; set; }
+
+    private List<DocumentItem> documents = new();
+    private List<UploadedFile> uploadedFiles = new();
+
+    private string newDocumentName = "";
+    private string newDocumentPriority = "Normal";
+
+    private int completionPercentage => documents.Any() 
+        ? (int)((double)documents.Count(d => d.IsReceived) / documents.Count * 100) 
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDocuments();
+        await UpdateDocumentsNeededCount();
+    }
+
+    private async Task LoadDocuments()
+    {
+        // TODO: Load from database
+        // Simulated data
+        documents = new List<DocumentItem>
+        {
+            new DocumentItem { Id = 1, Name = "Certificate of Eligibility (COE)", Description = "VA Form 26-1880 showing eligibility for VA benefits", IsRequired = true, Priority = "High", IsReceived = false },
+            new DocumentItem { Id = 2, Name = "Most Recent Mortgage Statement", Description = "Current loan statement showing balance and payment", IsRequired = true, Priority = "High", IsReceived = false, RequestedDate = "11/10/2025" },
+            new DocumentItem { Id = 3, Name = "Proof of Income", Description = "Last 2 pay stubs or benefit statements", IsRequired = true, Priority = "High", IsReceived = true, ReceivedDate = DateTime.Now.AddDays(-1) },
+            new DocumentItem { Id = 4, Name = "Bank Statements", Description = "Last 2 months of statements for all accounts", IsRequired = true, Priority = "Normal", IsReceived = false },
+            new DocumentItem { Id = 5, Name = "Government-Issued ID", Description = "Driver's license or passport", IsRequired = true, Priority = "Normal", IsReceived = true, ReceivedDate = DateTime.Now.AddDays(-1) },
+            new DocumentItem { Id = 6, Name = "Homeowner's Insurance", Description = "Current policy declaration page", IsRequired = true, Priority = "Normal", IsReceived = false },
+        };
+
+        uploadedFiles = new List<UploadedFile>
+        {
+            new UploadedFile { Id = 1, FileName = "pay_stub_nov_2025.pdf", UploadedDate = DateTime.Now.AddDays(-1) },
+            new UploadedFile { Id = 2, FileName = "drivers_license.pdf", UploadedDate = DateTime.Now.AddDays(-1) }
+        };
+
+        await Task.CompletedTask;
+    }
+
+    private async Task UpdateDocumentsNeededCount()
+    {
+        var count = documents.Count(d => d.IsRequired && !d.IsReceived);
+        if (count != DocumentsNeededCount)
+        {
+            DocumentsNeededCount = count;
+            await DocumentsNeededCountChanged.InvokeAsync(DocumentsNeededCount);
+        }
+    }
+
+    private async Task ToggleDocument(int documentId)
+    {
+        var doc = documents.FirstOrDefault(d => d.Id == documentId);
+        if (doc != null)
+        {
+            doc.IsReceived = !doc.IsReceived;
+            doc.ReceivedDate = doc.IsReceived ? DateTime.Now : null;
+            await UpdateDocumentsNeededCount();
+        }
+    }
+
+    private async Task RequestDocument(int documentId)
+    {
+        var doc = documents.FirstOrDefault(d => d.Id == documentId);
+        if (doc != null)
+        {
+            doc.RequestedDate = DateTime.Now.ToString("MM/dd/yyyy");
+            // TODO: Send actual email/notification to veteran
+            await JS.InvokeVoidAsync("alert", $"Document request sent for: {doc.Name}");
+        }
+    }
+
+    private async Task UploadDocument(int documentId)
+    {
+        // TODO: Implement actual file upload
+        await JS.InvokeVoidAsync("alert", "File upload functionality coming soon!");
+    }
+
+    private async Task AddCustomDocument()
+    {
+        if (!string.IsNullOrWhiteSpace(newDocumentName))
+        {
+            var newDoc = new DocumentItem
+            {
+                Id = documents.Any() ? documents.Max(d => d.Id) + 1 : 1,
+                Name = newDocumentName,
+                Description = "Custom document",
+                IsRequired = newDocumentPriority == "High",
+                Priority = newDocumentPriority,
+                IsReceived = false
+            };
+            documents.Add(newDoc);
+            newDocumentName = "";
+            newDocumentPriority = "Normal";
+            await UpdateDocumentsNeededCount();
+        }
+    }
+
+    private async Task GenerateAIChecklist()
+    {
+        // TODO: Call AI service to generate personalized checklist
+        await JS.InvokeVoidAsync("alert", "AI Document Analysis:\n\nBased on veteran's application:\n- All standard IRRRL documents required\n- Additional: Bankruptcy discharge papers (flagged in declarations)\n- Recommendation: Request updated COE due to disability rating");
+    }
+
+    private async Task DeleteFile(int fileId)
+    {
+        var file = uploadedFiles.FirstOrDefault(f => f.Id == fileId);
+        if (file != null)
+        {
+            uploadedFiles.Remove(file);
+            // TODO: Delete from storage
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task SendDocumentRequest()
+    {
+        // TODO: Send email with list of needed documents
+        await JS.InvokeVoidAsync("alert", "Document request email sent to veteran!");
+    }
+
+    private async Task GenerateDocumentList()
+    {
+        // TODO: Generate PDF of document checklist
+        await JS.InvokeVoidAsync("alert", "Printing document list...");
+    }
+
+    private async Task ViewDocumentGuide()
+    {
+        // TODO: Open VA guidelines in new tab
+        await JS.InvokeVoidAsync("window.open", "https://www.benefits.va.gov/HOMELOANS/", "_blank");
+    }
+
+    private class DocumentItem
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public bool IsRequired { get; set; }
+        public string Priority { get; set; } = "Normal";
+        public bool IsReceived { get; set; }
+        public DateTime? ReceivedDate { get; set; }
+        public string RequestedDate { get; set; } = "";
+    }
+
+    private class UploadedFile
+    {
+        public int Id { get; set; }
+        public string FileName { get; set; } = "";
+        public DateTime UploadedDate { get; set; }
+    }
+}
+

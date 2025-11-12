@@ -1,0 +1,376 @@
+@page "/loanofficer/dashboard"
+@attribute [Authorize(Roles = "LoanOfficer")]
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager NavigationManager
+
+<PageTitle>Loan Officer Dashboard - IRRRL</PageTitle>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">📊 Loan Officer Dashboard</h2>
+            <p class="text-muted">Manage IRRRL applications, track documents, and prepare files for underwriting</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card stats-new">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">New Applications</h6>
+                            <h2 class="mb-0">@newApplications.Count</h2>
+                        </div>
+                        <div class="stats-icon">
+                            <span class="oi oi-file" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card stats-progress">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">In Progress</h6>
+                            <h2 class="mb-0">@inProgressApplications.Count</h2>
+                        </div>
+                        <div class="stats-icon">
+                            <span class="oi oi-clock" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card stats-review">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Ready for Review</h6>
+                            <h2 class="mb-0">@readyForReviewApplications.Count</h2>
+                        </div>
+                        <div class="stats-icon">
+                            <span class="oi oi-eye" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card stats-complete">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Completed (30d)</h6>
+                            <h2 class="mb-0">@completedApplications.Count</h2>
+                        </div>
+                        <div class="stats-icon">
+                            <span class="oi oi-check" aria-hidden="true"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search -->
+    <div class="row mb-3">
+        <div class="col-md-6 mb-3">
+            <div class="input-group">
+                <span class="input-group-text"><span class="oi oi-magnifying-glass"></span></span>
+                <input type="text" class="form-control" placeholder="Search by veteran name, app number, or loan number..." @bind="searchQuery" @bind:event="oninput" />
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <select class="form-select" @bind="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="New">New</option>
+                <option value="InProgress">In Progress</option>
+                <option value="DocumentsNeeded">Documents Needed</option>
+                <option value="ReadyForReview">Ready for Review</option>
+                <option value="Underwriting">Sent to Underwriting</option>
+                <option value="Completed">Completed</option>
+            </select>
+        </div>
+        <div class="col-md-3 mb-3 text-end">
+            <button class="btn btn-primary" @onclick="RefreshApplications">
+                <span class="oi oi-reload"></span> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">📋 Active Applications</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (filteredApplications.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>App #</th>
+                                        <th>Veteran</th>
+                                        <th>Property Address</th>
+                                        <th>Current Rate</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var app in filteredApplications)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@app.ApplicationNumber</strong>
+                                            </td>
+                                            <td>
+                                                @app.VeteranName
+                                                @if (!string.IsNullOrEmpty(app.PhoneNumber))
+                                                {
+                                                    <br /><small class="text-muted">@app.PhoneNumber</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @app.PropertyAddress
+                                                <br /><small class="text-muted">@app.PropertyCity, @app.PropertyState @app.PropertyZip</small>
+                                            </td>
+                                            <td>
+                                                <strong>@app.CurrentRate.ToString("0.000")%</strong>
+                                                <br /><small class="text-muted">$@app.CurrentMonthlyPayment.ToString("N0")/mo</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetStatusBadgeClass(app.Status)">
+                                                    @GetStatusDisplay(app.Status)
+                                                </span>
+                                                @if (app.ActionItemsCount > 0)
+                                                {
+                                                    <br /><small class="text-warning">⚠️ @app.ActionItemsCount task(s)</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                @app.SubmittedDate.ToString("MM/dd/yyyy")
+                                                <br /><small class="text-muted">@GetDaysAgo(app.SubmittedDate) days ago</small>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-primary me-1" @onclick="() => ViewApplication(app.Id)">
+                                                    <span class="oi oi-eye"></span> Review
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <span class="oi oi-inbox" style="font-size: 3rem; opacity: 0.3;"></span>
+                            <p class="text-muted mt-3">No applications found matching your criteria</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .stats-card {
+        border-left: 4px solid;
+        transition: transform 0.2s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    .stats-card.stats-new {
+        border-left-color: var(--blue-accent);
+    }
+    .stats-card.stats-progress {
+        border-left-color: #ffc107;
+    }
+    .stats-card.stats-review {
+        border-left-color: #17a2b8;
+    }
+    .stats-card.stats-complete {
+        border-left-color: var(--green-success);
+    }
+    .stats-icon {
+        font-size: 2.5rem;
+        opacity: 0.3;
+    }
+    .table th {
+        background-color: var(--navy-blue);
+        color: white;
+        font-weight: 600;
+        border: none;
+    }
+    .table tbody tr {
+        cursor: pointer;
+    }
+    .table tbody tr:hover {
+        background-color: rgba(0, 113, 193, 0.05);
+    }
+</style>
+
+@code {
+    private string searchQuery = "";
+    private string statusFilter = "";
+
+    private List<ApplicationSummary> allApplications = new();
+    private List<ApplicationSummary> newApplications = new();
+    private List<ApplicationSummary> inProgressApplications = new();
+    private List<ApplicationSummary> readyForReviewApplications = new();
+    private List<ApplicationSummary> completedApplications = new();
+
+    private List<ApplicationSummary> filteredApplications => 
+        allApplications
+            .Where(a => 
+                (string.IsNullOrWhiteSpace(searchQuery) || 
+                 a.VeteranName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                 a.ApplicationNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                 a.LoanNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(statusFilter) || a.Status == statusFilter))
+            .OrderByDescending(a => a.SubmittedDate)
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApplications();
+    }
+
+    private async Task LoadApplications()
+    {
+        // TODO: Load from database
+        // Simulated data for now
+        allApplications = new List<ApplicationSummary>
+        {
+            new ApplicationSummary
+            {
+                Id = 1,
+                ApplicationNumber = "IRRRL-2025-001",
+                VeteranName = "John Smith",
+                PhoneNumber = "(555) 123-4567",
+                PropertyAddress = "123 Main St",
+                PropertyCity = "San Diego",
+                PropertyState = "CA",
+                PropertyZip = "92101",
+                CurrentRate = 4.5m,
+                CurrentMonthlyPayment = 1500,
+                LoanNumber = "12-3456789",
+                Status = "New",
+                SubmittedDate = DateTime.Now.AddDays(-2),
+                ActionItemsCount = 5
+            },
+            new ApplicationSummary
+            {
+                Id = 2,
+                ApplicationNumber = "IRRRL-2025-002",
+                VeteranName = "Jane Doe",
+                PhoneNumber = "(555) 987-6543",
+                PropertyAddress = "456 Oak Ave",
+                PropertyCity = "Phoenix",
+                PropertyState = "AZ",
+                PropertyZip = "85001",
+                CurrentRate = 5.25m,
+                CurrentMonthlyPayment = 1800,
+                LoanNumber = "98-7654321",
+                Status = "InProgress",
+                SubmittedDate = DateTime.Now.AddDays(-5),
+                ActionItemsCount = 2
+            },
+            new ApplicationSummary
+            {
+                Id = 3,
+                ApplicationNumber = "IRRRL-2025-003",
+                VeteranName = "Robert Johnson",
+                PhoneNumber = "(555) 456-7890",
+                PropertyAddress = "789 Pine Rd",
+                PropertyCity = "Austin",
+                PropertyState = "TX",
+                PropertyZip = "73301",
+                CurrentRate = 4.875m,
+                CurrentMonthlyPayment = 2100,
+                LoanNumber = "45-6789012",
+                Status = "ReadyForReview",
+                SubmittedDate = DateTime.Now.AddDays(-7),
+                ActionItemsCount = 0
+            }
+        };
+
+        newApplications = allApplications.Where(a => a.Status == "New").ToList();
+        inProgressApplications = allApplications.Where(a => a.Status == "InProgress").ToList();
+        readyForReviewApplications = allApplications.Where(a => a.Status == "ReadyForReview").ToList();
+        completedApplications = allApplications.Where(a => a.Status == "Completed").ToList();
+        
+        await Task.CompletedTask;
+    }
+
+    private async Task RefreshApplications()
+    {
+        await LoadApplications();
+    }
+
+    private void ViewApplication(int applicationId)
+    {
+        NavigationManager.NavigateTo($"/loanofficer/application/{applicationId}");
+    }
+
+    private string GetStatusBadgeClass(string status) => status switch
+    {
+        "New" => "bg-primary",
+        "InProgress" => "bg-warning",
+        "DocumentsNeeded" => "bg-danger",
+        "ReadyForReview" => "bg-info",
+        "Underwriting" => "bg-secondary",
+        "Completed" => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    private string GetStatusDisplay(string status) => status switch
+    {
+        "New" => "New",
+        "InProgress" => "In Progress",
+        "DocumentsNeeded" => "Docs Needed",
+        "ReadyForReview" => "Ready",
+        "Underwriting" => "Underwriting",
+        "Completed" => "Complete",
+        _ => status
+    };
+
+    private int GetDaysAgo(DateTime date) => (DateTime.Now - date).Days;
+
+    private class ApplicationSummary
+    {
+        public int Id { get; set; }
+        public string ApplicationNumber { get; set; } = "";
+        public string VeteranName { get; set; } = "";
+        public string PhoneNumber { get; set; } = "";
+        public string PropertyAddress { get; set; } = "";
+        public string PropertyCity { get; set; } = "";
+        public string PropertyState { get; set; } = "";
+        public string PropertyZip { get; set; } = "";
+        public decimal CurrentRate { get; set; }
+        public decimal CurrentMonthlyPayment { get; set; }
+        public string LoanNumber { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime SubmittedDate { get; set; }
+        public int ActionItemsCount { get; set; }
+    }
+}
+
