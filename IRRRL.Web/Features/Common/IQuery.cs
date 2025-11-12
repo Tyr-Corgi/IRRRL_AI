@@ -7,7 +7,7 @@ namespace IRRRL.Web.Features.Common;
 /// Queries should be side-effect free and idempotent
 /// </summary>
 /// <typeparam name="TResponse">The type of data returned by the query</typeparam>
-public interface IQuery<out TResponse> : IRequest<TResponse>
+public interface IQuery<out TResponse> : MediatR.IRequest<TResponse>
 {
 }
 
