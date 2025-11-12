@@ -10,10 +10,17 @@
 <EditForm Model="@Model" OnValidSubmit="HandleNext">
     <DataAnnotationsValidator />
 
+    <div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" id="sameAsProperty" @bind="sameAsPropertyAddress" @bind:after="CopyPropertyAddress" />
+        <label class="form-check-label" for="sameAsProperty">
+            <strong>✓ Same as property address</strong> (I live at the property I'm refinancing)
+        </label>
+    </div>
+
     <div class="row">
         <div class="col-12 mb-3">
             <label class="form-label">Current Street Address <span class="text-danger">*</span></label>
-            <InputText @bind-Value="Model.CurrentStreetAddress" class="form-control" placeholder="123 Main St" />
+            <InputText @bind-Value="Model.CurrentStreetAddress" class="form-control" placeholder="123 Main St" disabled="@sameAsPropertyAddress" />
             <ValidationMessage For="@(() => Model.CurrentStreetAddress)" class="text-danger" />
         </div>
     </div>
@@ -21,19 +28,19 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label class="form-label">City <span class="text-danger">*</span></label>
-            <InputText @bind-Value="Model.CurrentCity" class="form-control" placeholder="Springfield" />
+            <InputText @bind-Value="Model.CurrentCity" class="form-control" placeholder="Springfield" disabled="@sameAsPropertyAddress" />
             <ValidationMessage For="@(() => Model.CurrentCity)" class="text-danger" />
         </div>
 
         <div class="col-md-3 mb-3">
             <label class="form-label">State <span class="text-danger">*</span></label>
-            <InputText @bind-Value="Model.CurrentState" class="form-control" placeholder="IL" maxlength="2" />
+            <InputText @bind-Value="Model.CurrentState" class="form-control" placeholder="IL" maxlength="2" disabled="@sameAsPropertyAddress" />
             <ValidationMessage For="@(() => Model.CurrentState)" class="text-danger" />
         </div>
 
         <div class="col-md-3 mb-3">
             <label class="form-label">ZIP Code <span class="text-danger">*</span></label>
-            <InputText @bind-Value="Model.CurrentZipCode" class="form-control" placeholder="62701" />
+            <InputText @bind-Value="Model.CurrentZipCode" class="form-control" placeholder="62701" disabled="@sameAsPropertyAddress" />
             <ValidationMessage For="@(() => Model.CurrentZipCode)" class="text-danger" />
         </div>
     </div>
@@ -139,6 +146,20 @@
     [Parameter] public ApplicationFormModel Model { get; set; } = new();
     [Parameter] public EventCallback OnNext { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
+
+    private bool sameAsPropertyAddress = false;
+
+    private void CopyPropertyAddress()
+    {
+        if (sameAsPropertyAddress)
+        {
+            // Copy from property address
+            Model.CurrentStreetAddress = Model.PropertyAddress;
+            Model.CurrentCity = Model.City;
+            Model.CurrentState = Model.State;
+            Model.CurrentZipCode = Model.ZipCode;
+        }
+    }
 
     private bool NeedsPreviousAddress()
     {

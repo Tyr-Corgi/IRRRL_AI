@@ -78,15 +78,22 @@
 
     @if (Model.MaritalStatus == "Married")
     {
+        <div class="alert alert-info mb-3">
+            <strong>📋 Spouse Information</strong>
+            <p class="mb-0">Since you're married, please provide your spouse's information (required for loan documentation).</p>
+        </div>
+
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label class="form-label">Spouse First Name</label>
+                <label class="form-label">Spouse First Name <span class="text-danger">*</span></label>
                 <InputText @bind-Value="Model.SpouseFirstName" class="form-control" placeholder="Jane" />
+                <ValidationMessage For="@(() => Model.SpouseFirstName)" class="text-danger" />
             </div>
 
             <div class="col-md-6 mb-3">
-                <label class="form-label">Spouse Last Name</label>
+                <label class="form-label">Spouse Last Name <span class="text-danger">*</span></label>
                 <InputText @bind-Value="Model.SpouseLastName" class="form-control" placeholder="Doe" />
+                <ValidationMessage For="@(() => Model.SpouseLastName)" class="text-danger" />
             </div>
         </div>
     }

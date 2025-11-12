@@ -157,22 +157,16 @@
                 <small class="text-muted">Occupancy</small>
                 <div><strong>@Model.Occupancy</strong></div>
             </div>
+            @if (Model.EstimatedHomeValue > 0)
+            {
+                <div class="col-12 mt-2">
+                    <small class="text-muted">Estimated Home Value</small>
+                    <div class="h5 text-success">$@Model.EstimatedHomeValue.ToString("N0")</div>
+                </div>
+            }
         </div>
     </div>
 </div>
-
-@if (Model.EstimatedHomeValue > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header bg-primary text-white">
-            <strong>Estimated Home Value</strong>
-        </div>
-        <div class="card-body">
-            <div class="h4 text-success">$@Model.EstimatedHomeValue.ToString("N0")</div>
-            <small class="text-muted">This estimate will be verified by the loan officer.</small>
-        </div>
-    </div>
-}
 
 <div class="card mb-3">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -181,13 +175,9 @@
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-md-6 mb-2">
+            <div class="col-md-12 mb-2">
                 <small class="text-muted">Intent to Occupy</small>
-                <div><strong>@(Model.IntendToOccupyProperty ? "Yes - Primary Residence" : "No - Not Primary Residence")</strong></div>
-            </div>
-            <div class="col-md-6 mb-2">
-                <small class="text-muted">Outstanding Judgments</small>
-                <div><strong>@(Model.HasOutstandingJudgments ? "Yes" : "No")</strong></div>
+                <div><strong>@(Model.IntendToOccupyProperty ? "Yes - Primary Residence" : "No - Previously Primary Residence")</strong></div>
             </div>
             <div class="col-md-6 mb-2">
                 <small class="text-muted">Bankruptcy (7 yrs)</small>
@@ -197,21 +187,6 @@
                 <small class="text-muted">Foreclosure (7 yrs)</small>
                 <div><strong>@(Model.HasForeclosure ? "Yes" : "No")</strong></div>
             </div>
-            <div class="col-md-6 mb-2">
-                <small class="text-muted">Party to Lawsuit</small>
-                <div><strong>@(Model.IsPartyToLawsuit ? "Yes" : "No")</strong></div>
-            </div>
-            <div class="col-md-6 mb-2">
-                <small class="text-muted">Delinquent Federal Debt</small>
-                <div><strong>@(Model.HasDelinquentFederalDebt ? "Yes" : "No")</strong></div>
-            </div>
-            @if (Model.HasAlimonyChildSupport)
-            {
-                <div class="col-md-6 mb-2">
-                    <small class="text-muted">Alimony/Child Support</small>
-                    <div><strong>$@Model.AlimonyChildSupportAmount?.ToString("N0")/month</strong></div>
-                </div>
-            }
         </div>
     </div>
 </div>
@@ -341,11 +316,11 @@
         isSubmitting = false;
     }
 
-    private void EditStep(int step)
+    private async Task EditStep(int step)
     {
         // This will be implemented to jump back to a specific step
         // For now, just go back
-        HandleBack();
+        await HandleBack();
     }
 }
 

@@ -50,10 +50,10 @@ public class LoginModel : PageModel
         
         try
         {
-            if (ModelState.IsValid)
-            {
-                _logger.LogInformation("ModelState is valid, attempting sign in");
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                if (ModelState.IsValid && Input != null)
+                {
+                    _logger.LogInformation("ModelState is valid, attempting sign in");
+                    var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
 
                 _logger.LogInformation("SignIn result - Succeeded: {Succeeded}, IsLockedOut: {IsLockedOut}, IsNotAllowed: {IsNotAllowed}", 
                     result.Succeeded, result.IsLockedOut, result.IsNotAllowed);

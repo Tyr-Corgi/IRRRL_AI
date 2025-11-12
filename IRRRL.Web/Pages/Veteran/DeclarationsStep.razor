@@ -2,9 +2,9 @@
 
 <h4 class="mb-4">Declarations</h4>
 
-<div class="alert alert-warning mb-4">
-    <strong>⚖️ Legal Requirements</strong>
-    <p class="mb-0">Federal law requires these questions. Answer truthfully - false statements are a federal offense and can result in loan denial or criminal penalties.</p>
+<div class="alert alert-info mb-4">
+    <strong>📋 Streamlined IRRRL Questions</strong>
+    <p class="mb-0">Since this is a streamlined refinance, we only need essential information. Answer truthfully - your loan officer may request documentation if needed.</p>
 </div>
 
 <EditForm Model="@Model" OnValidSubmit="HandleNext">
@@ -12,58 +12,50 @@
 
     <div class="card mb-3">
         <div class="card-header bg-primary text-white">
-            <strong>Property Occupancy</strong>
+            <strong>Property Occupancy (Required)</strong>
         </div>
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label">Do you intend to occupy the property as your primary residence? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="occupancy" Value="@true" @bind-Value="Model.IntendToOccupyProperty" class="form-check-input" id="occupyYes" />
-                    <label class="form-check-label" for="occupyYes">
-                        <strong>Yes</strong> - This will be my primary residence
-                    </label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="occupancy" Value="@false" @bind-Value="Model.IntendToOccupyProperty" class="form-check-input" id="occupyNo" />
-                    <label class="form-check-label" for="occupyNo">
-                        <strong>No</strong> - This is a rental/investment property
-                    </label>
-                </div>
+                <InputRadioGroup @bind-Value="Model.IntendToOccupyProperty">
+                    <div class="form-check">
+                        <InputRadio Value="@true" class="form-check-input" id="occupyYes" />
+                        <label class="form-check-label" for="occupyYes">
+                            <strong>Yes</strong> - This will be my primary residence
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <InputRadio Value="@false" class="form-check-input" id="occupyNo" />
+                        <label class="form-check-label" for="occupyNo">
+                            <strong>No</strong> - This is/was my primary residence (now rental/second home)
+                        </label>
+                    </div>
+                </InputRadioGroup>
                 <ValidationMessage For="@(() => Model.IntendToOccupyProperty)" class="text-danger" />
+                <small class="text-muted d-block mt-2">Note: IRRRL requires you previously occupied this as your primary residence</small>
             </div>
         </div>
     </div>
 
     <div class="card mb-3">
         <div class="card-header bg-primary text-white">
-            <strong>Financial & Legal History</strong>
+            <strong>Credit History</strong>
         </div>
         <div class="card-body">
             <p class="text-muted small mb-3">Please answer yes or no to each question:</p>
 
             <div class="mb-3">
-                <label class="form-label">Are there any outstanding judgments against you? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="judgments" Value="@true" @bind-Value="Model.HasOutstandingJudgments" class="form-check-input" id="judgmentsYes" />
-                    <label class="form-check-label" for="judgmentsYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="judgments" Value="@false" @bind-Value="Model.HasOutstandingJudgments" class="form-check-input" id="judgmentsNo" />
-                    <label class="form-check-label" for="judgmentsNo">No</label>
-                </div>
-                <ValidationMessage For="@(() => Model.HasOutstandingJudgments)" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Have you declared bankruptcy within the past 7 years? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="bankruptcy" Value="@true" @bind-Value="Model.HasBankruptcy" class="form-check-input" id="bankruptcyYes" />
-                    <label class="form-check-label" for="bankruptcyYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="bankruptcy" Value="@false" @bind-Value="Model.HasBankruptcy" class="form-check-input" id="bankruptcyNo" />
-                    <label class="form-check-label" for="bankruptcyNo">No</label>
-                </div>
+                <InputRadioGroup @bind-Value="Model.HasBankruptcy">
+                    <div class="form-check">
+                        <InputRadio Value="@true" class="form-check-input" id="bankruptcyYes" />
+                        <label class="form-check-label" for="bankruptcyYes">Yes</label>
+                    </div>
+                    <div class="form-check">
+                        <InputRadio Value="@false" class="form-check-input" id="bankruptcyNo" />
+                        <label class="form-check-label" for="bankruptcyNo">No</label>
+                    </div>
+                </InputRadioGroup>
                 <ValidationMessage For="@(() => Model.HasBankruptcy)" class="text-danger" />
             </div>
 
@@ -86,14 +78,16 @@
 
             <div class="mb-3">
                 <label class="form-label">Have you had property foreclosed upon or given title or deed in lieu thereof in the past 7 years? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="foreclosure" Value="@true" @bind-Value="Model.HasForeclosure" class="form-check-input" id="foreclosureYes" />
-                    <label class="form-check-label" for="foreclosureYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="foreclosure" Value="@false" @bind-Value="Model.HasForeclosure" class="form-check-input" id="foreclosureNo" />
-                    <label class="form-check-label" for="foreclosureNo">No</label>
-                </div>
+                <InputRadioGroup @bind-Value="Model.HasForeclosure">
+                    <div class="form-check">
+                        <InputRadio Value="@true" class="form-check-input" id="foreclosureYes" />
+                        <label class="form-check-label" for="foreclosureYes">Yes</label>
+                    </div>
+                    <div class="form-check">
+                        <InputRadio Value="@false" class="form-check-input" id="foreclosureNo" />
+                        <label class="form-check-label" for="foreclosureNo">No</label>
+                    </div>
+                </InputRadioGroup>
                 <ValidationMessage For="@(() => Model.HasForeclosure)" class="text-danger" />
             </div>
 
@@ -102,56 +96,6 @@
                 <div class="ms-4 mb-3">
                     <label class="form-label">Foreclosure Completion Date</label>
                     <InputDate @bind-Value="Model.ForeclosureCompletionDate" class="form-control" />
-                </div>
-            }
-
-            <div class="mb-3">
-                <label class="form-label">Are you a party to a lawsuit? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="lawsuit" Value="@true" @bind-Value="Model.IsPartyToLawsuit" class="form-check-input" id="lawsuitYes" />
-                    <label class="form-check-label" for="lawsuitYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="lawsuit" Value="@false" @bind-Value="Model.IsPartyToLawsuit" class="form-check-input" id="lawsuitNo" />
-                    <label class="form-check-label" for="lawsuitNo">No</label>
-                </div>
-                <ValidationMessage For="@(() => Model.IsPartyToLawsuit)" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Have you been delinquent or in default on any Federal debt or loan? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="delinquent" Value="@true" @bind-Value="Model.HasDelinquentFederalDebt" class="form-check-input" id="delinquentYes" />
-                    <label class="form-check-label" for="delinquentYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="delinquent" Value="@false" @bind-Value="Model.HasDelinquentFederalDebt" class="form-check-input" id="delinquentNo" />
-                    <label class="form-check-label" for="delinquentNo">No</label>
-                </div>
-                <ValidationMessage For="@(() => Model.HasDelinquentFederalDebt)" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Are you obligated to pay alimony, child support, or separate maintenance? <span class="text-danger">*</span></label>
-                <div class="form-check">
-                    <InputRadio name="alimony" Value="@true" @bind-Value="Model.HasAlimonyChildSupport" class="form-check-input" id="alimonyYes" />
-                    <label class="form-check-label" for="alimonyYes">Yes</label>
-                </div>
-                <div class="form-check">
-                    <InputRadio name="alimony" Value="@false" @bind-Value="Model.HasAlimonyChildSupport" class="form-check-input" id="alimonyNo" />
-                    <label class="form-check-label" for="alimonyNo">No</label>
-                </div>
-                <ValidationMessage For="@(() => Model.HasAlimonyChildSupport)" class="text-danger" />
-            </div>
-
-            @if (Model.HasAlimonyChildSupport)
-            {
-                <div class="ms-4 mb-3">
-                    <label class="form-label">Monthly Alimony/Child Support Amount</label>
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        <InputNumber @bind-Value="Model.AlimonyChildSupportAmount" class="form-control" min="0" step="1" />
-                    </div>
                 </div>
             }
         </div>

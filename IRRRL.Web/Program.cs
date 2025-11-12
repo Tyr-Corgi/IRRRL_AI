@@ -38,10 +38,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 );
 
 // Data Protection (for encrypting SSN and other sensitive data)
-// This configures where encryption keys are stored
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(@"./Keys")) // Store keys in ./Keys directory
-    .SetApplicationName("IRRRL"); // Application name for key isolation
+// Uses default configuration - keys stored in %LOCALAPPDATA%\ASP.NET\DataProtection-Keys
+builder.Services.AddDataProtection();
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
