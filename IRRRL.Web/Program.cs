@@ -67,6 +67,22 @@ builder.Services.ConfigureApplicationCookie(options =>
 // SignalR
 builder.Services.AddSignalR();
 
+// Orleans Configuration (Distributed Actor Framework)
+builder.Host.UseOrleans((context, siloBuilder) =>
+{
+    // Use localhost clustering for development
+    // In production, use Azure Table Storage, AWS DynamoDB, or SQL Server
+    siloBuilder.UseLocalhostClustering();
+    
+    // Add Orleans Dashboard for monitoring Grains
+    siloBuilder.UseDashboard(options =>
+    {
+        options.Port = 8080; // Dashboard available at http://localhost:8080
+    });
+    
+    builder.Logging.AddConsole();
+});
+
 // Core Services
 builder.Services.AddScoped<INetTangibleBenefitCalculator, NetTangibleBenefitCalculator>();
 builder.Services.AddScoped<IEligibilityService, EligibilityService>();

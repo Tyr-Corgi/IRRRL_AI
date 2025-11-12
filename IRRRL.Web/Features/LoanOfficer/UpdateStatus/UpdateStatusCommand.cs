@@ -1,9 +1,11 @@
 using IRRRL.Core.Entities;
 using IRRRL.Core.Enums;
+using IRRRL.Core.Grains;
 using IRRRL.Infrastructure.Data;
 using IRRRL.Web.Features.Common;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Orleans;
 
 namespace IRRRL.Web.Features.LoanOfficer.UpdateStatus;
 
@@ -19,18 +21,24 @@ public record UpdateStatusCommand(
 
 /// <summary>
 /// Handler for UpdateStatusCommand
-/// Updates status and creates history record
+/// NOW USING ORLEANS GRAINS!
+/// 
+/// VERTICAL SLICE + ORLEANS PATTERN:
+/// 1. Vertical Slice provides the structure (Feature folder with Command + Handler)
+/// 2. Handler delegates to Orleans Grain for actual work
+/// 3. Grain handles state management, concurrency, and notifications
+/// 4. Result: Clean architecture + distributed scalability
 /// </summary>
 public class UpdateStatusHandler : IRequestHandler<UpdateStatusCommand, Result>
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IGrainFactory _grainFactory;
     private readonly ILogger<UpdateStatusHandler> _logger;
 
     public UpdateStatusHandler(
-        ApplicationDbContext context,
+        IGrainFactory grainFactory,
         ILogger<UpdateStatusHandler> logger)
     {
-        _context = context;
+        _grainFactory = grainFactory;
         _logger = logger;
     }
 
@@ -38,53 +46,38 @@ public class UpdateStatusHandler : IRequestHandler<UpdateStatusCommand, Result>
         UpdateStatusCommand request,
         CancellationToken cancellationToken)
     {
-        var application = await _context.IRRRLApplications
-            .FirstOrDefaultAsync(a => a.Id == request.ApplicationId, cancellationToken);
-
-        if (application == null)
-        {
-            _logger.LogWarning(
-                "Attempted to update status for non-existent application: {ApplicationId}",
-                request.ApplicationId);
-            return Result.Failure($"Application {request.ApplicationId} not found");
-        }
-
-        // Check if status is actually changing
-        if (application.Status == request.NewStatus)
-        {
-            _logger.LogInformation(
-                "Status unchanged for application {ApplicationNumber}: {Status}",
-                application.ApplicationNumber,
-                request.NewStatus);
-            return Result.Success();
-        }
-
-        var oldStatus = application.Status;
-        
-        // Update application status
-        application.Status = request.NewStatus;
-        application.UpdatedAt = DateTime.UtcNow;
-
-        // Add status history record
-        var historyEntry = new ApplicationStatusHistory
-        {
-            IRRRLApplicationId = application.Id,
-            FromStatus = oldStatus,
-            ToStatus = request.NewStatus,
-            ChangedAt = DateTime.UtcNow,
-            Notes = request.Notes
-        };
-        _context.ApplicationStatusHistories.Add(historyEntry);
-
-        await _context.SaveChangesAsync(cancellationToken);
-
         _logger.LogInformation(
-            "Application {ApplicationNumber} status updated from {OldStatus} to {NewStatus}",
-            application.ApplicationNumber,
-            oldStatus,
+            "Updating status for application {ApplicationId} to {NewStatus}",
+            request.ApplicationId,
             request.NewStatus);
 
-        return Result.Success();
+        try
+        {
+            // Get the ApplicationGrain (Orleans automatically activates it if needed)
+            var applicationGrain = _grainFactory.GetGrain<IApplicationGrain>(request.ApplicationId);
+            
+            // Call the Grain to update status
+            // The Grain handles:
+            // - State management
+            // - Concurrency (thread-safe)
+            // - Database updates
+            // - Notifications to other users
+            await applicationGrain.UpdateStatusAsync(request.NewStatus, request.Notes);
+
+            _logger.LogInformation(
+                "Successfully delegated status update to ApplicationGrain {ApplicationId}",
+                request.ApplicationId);
+
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error updating status for application {ApplicationId}",
+                request.ApplicationId);
+            return Result.Failure($"Failed to update status: {ex.Message}");
+        }
     }
 }
 
