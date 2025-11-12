@@ -1,7 +1,10 @@
 @page "/loanofficer/dashboard"
 @attribute [Authorize(Roles = "LoanOfficer")]
 @using Microsoft.AspNetCore.Authorization
+@using IRRRL.Core.Interfaces
+@using IRRRL.Core.Enums
 @inject NavigationManager NavigationManager
+@inject ILoanOfficerService LoanOfficerService
 
 <PageTitle>Loan Officer Dashboard - IRRRL</PageTitle>
 
@@ -231,12 +234,27 @@
 @code {
     private string searchQuery = "";
     private string statusFilter = "";
+    private bool isLoading = true;
 
     private List<ApplicationSummary> allApplications = new();
-    private List<ApplicationSummary> newApplications = new();
-    private List<ApplicationSummary> inProgressApplications = new();
-    private List<ApplicationSummary> readyForReviewApplications = new();
-    private List<ApplicationSummary> completedApplications = new();
+    private ApplicationStatistics stats = new();
+
+    private List<ApplicationSummary> newApplications => 
+        allApplications.Where(a => a.Status == ApplicationStatus.Submitted).ToList();
+    
+    private List<ApplicationSummary> inProgressApplications => 
+        allApplications.Where(a => 
+            a.Status == ApplicationStatus.DocumentGathering || 
+            a.Status == ApplicationStatus.AIProcessing ||
+            a.Status == ApplicationStatus.FilePreparation).ToList();
+    
+    private List<ApplicationSummary> readyForReviewApplications => 
+        allApplications.Where(a => a.Status == ApplicationStatus.UnderwriterReady).ToList();
+    
+    private List<ApplicationSummary> completedApplications => 
+        allApplications.Where(a => 
+            a.Status == ApplicationStatus.Closed || 
+            a.Status == ApplicationStatus.Approved).ToList();
 
     private List<ApplicationSummary> filteredApplications => 
         allApplications
@@ -245,7 +263,7 @@
                  a.VeteranName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                  a.ApplicationNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
                  a.LoanNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
-                (string.IsNullOrWhiteSpace(statusFilter) || a.Status == statusFilter))
+                (string.IsNullOrWhiteSpace(statusFilter) || a.Status.ToString() == statusFilter))
             .OrderByDescending(a => a.SubmittedDate)
             .ToList();
 

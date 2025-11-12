@@ -71,6 +71,7 @@ public class IRRRLApplication : BaseEntity
     // Navigation properties
     public ICollection<Document> Documents { get; set; } = new List<Document>();
     public ICollection<ActionItem> ActionItems { get; set; } = new List<ActionItem>();
+    public ICollection<ApplicationNote> Notes { get; set; } = new List<ApplicationNote>();
     public ICollection<ApplicationStatusHistory> StatusHistory { get; set; } = new List<ApplicationStatusHistory>();
     public NetTangibleBenefit? NetTangibleBenefitCalculation { get; set; }
     public ICollection<AuditLog> AuditLogs { get; set; } = new List<AuditLog>();

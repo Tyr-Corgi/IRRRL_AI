@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     // Documents and actions
     public DbSet<Document> Documents => Set<Document>();
     public DbSet<ActionItem> ActionItems => Set<ActionItem>();
+    public DbSet<ApplicationNote> ApplicationNotes => Set<ApplicationNote>();
     
     // Audit and history
     public DbSet<ApplicationStatusHistory> ApplicationStatusHistories => Set<ApplicationStatusHistory>();
@@ -41,6 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         ConfigureNetTangibleBenefit(builder);
         ConfigureDocument(builder);
         ConfigureActionItem(builder);
+        ConfigureApplicationNote(builder);
         ConfigureApplicationStatusHistory(builder);
         ConfigureAuditLog(builder);
     }
@@ -192,6 +194,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             
             entity.HasOne(e => e.IRRRLApplication)
                 .WithMany(a => a.ActionItems)
+                .HasForeignKey(e => e.IRRRLApplicationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+    
+    private void ConfigureApplicationNote(ModelBuilder builder)
+    {
+        builder.Entity<ApplicationNote>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Content).IsRequired();
+            entity.Property(e => e.CreatedByUserId).IsRequired().HasMaxLength(450);
+            entity.Property(e => e.CreatedByName).IsRequired().HasMaxLength(200);
+            
+            entity.HasIndex(e => e.CreatedAt);
+            entity.HasIndex(e => e.IsImportant);
+            entity.HasIndex(e => e.NoteType);
+            
+            entity.HasOne(e => e.IRRRLApplication)
+                .WithMany(a => a.Notes)
                 .HasForeignKey(e => e.IRRRLApplicationId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

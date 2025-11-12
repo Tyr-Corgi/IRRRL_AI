@@ -93,6 +93,7 @@ builder.Services.AddScoped<IDocumentGenerator, QuestPDFDocumentGenerator>();
 
 // Infrastructure Services
 builder.Services.AddScoped<IApplicationNotificationService, ApplicationNotificationService>();
+builder.Services.AddScoped<ILoanOfficerService, LoanOfficerService>();
 
 // MediatR for CQRS
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
