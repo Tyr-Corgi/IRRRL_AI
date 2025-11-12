@@ -188,22 +188,23 @@ public static class DbInitializer
             context.Borrowers.Add(borrower);
             await context.SaveChangesAsync();
             
-            // Create Property
-            var property = new Core.Entities.Property
-            {
-                StreetAddress = "123 Main St",
-                City = "San Diego",
-                State = "CA",
-                ZipCode = "92101",
-                PropertyType = Core.Enums.PropertyType.SingleFamily,
-                EstimatedValue = 400000,
-                YearBuilt = 2005,
-                NumberOfUnits = 1,
-                IsOwnerOccupied = true,
-                AnnualPropertyTax = 4800,
-                AnnualInsurance = 1200,
-                CreatedAt = DateTime.UtcNow.AddDays(-10)
-            };
+                // Create Property
+                var property = new Core.Entities.Property
+                {
+                    StreetAddress = "123 Main St",
+                    City = "San Diego",
+                    State = "CA",
+                    ZipCode = "92101",
+                    PropertyType = "Single Family",
+                    EstimatedValue = 400000,
+                    YearBuilt = 2005,
+                    CurrentlyOccupied = true,
+                    PreviouslyOccupied = true,
+                    OccupancyStartDate = DateTime.UtcNow.AddYears(-3),
+                    AnnualPropertyTax = 4800,
+                    AnnualInsurance = 1200,
+                    CreatedAt = DateTime.UtcNow.AddDays(-10)
+                };
             context.Properties.Add(property);
             await context.SaveChangesAsync();
             
@@ -236,29 +237,31 @@ public static class DbInitializer
             context.IRRRLApplications.Add(app1);
             await context.SaveChangesAsync();
             
-            // Create Current Loan for App1
-            var currentLoan1 = new Core.Entities.CurrentLoan
-            {
-                IRRRLApplicationId = app1.Id,
-                LoanNumber = "12-3456789",
-                Lender = "ABC Mortgage Company",
-                CurrentBalance = 250000,
-                OriginalLoanAmount = 275000,
-                InterestRate = 4.5m,
-                OriginalInterestRate = 4.5m,
-                LoanType = Core.Enums.LoanType.FixedRate,
-                OriginalTermMonths = 360,
-                RemainingTermMonths = 300,
-                MonthlyPrincipalAndInterest = 1394,
-                MonthlyPropertyTax = 400,
-                MonthlyInsurance = 100,
-                MonthlyPMI = 0,
-                TotalMonthlyPayment = 1894,
-                OriginationDate = DateTime.UtcNow.AddYears(-5),
-                IsVALoan = true,
-                OriginalVAFundingFee = 2750,
-                CreatedAt = DateTime.UtcNow.AddDays(-2)
-            };
+                // Create Current Loan for App1
+                var currentLoan1 = new Core.Entities.CurrentLoan
+                {
+                    IRRRLApplicationId = app1.Id,
+                    LoanNumber = "12-3456789",
+                    Lender = "ABC Mortgage Company",
+                    CurrentBalance = 250000,
+                    OriginalLoanAmount = 275000,
+                    InterestRate = 4.5m,
+                    LoanType = Core.Enums.LoanType.FixedRate,
+                    OriginalTermMonths = 360,
+                    RemainingTermMonths = 300,
+                    MonthlyPrincipalAndInterest = 1394,
+                    MonthlyPropertyTax = 400,
+                    MonthlyInsurance = 100,
+                    MonthlyPMI = 0,
+                    TotalMonthlyPayment = 1894,
+                    OriginationDate = DateTime.UtcNow.AddYears(-5),
+                    CurrentOnPayments = true,
+                    LatePaymentsLast12Months = 0,
+                    LatePaymentsOver30Days = 0,
+                    IsVALoan = true,
+                    OriginalVAFundingFee = 2750,
+                    CreatedAt = DateTime.UtcNow.AddDays(-2)
+                };
             context.CurrentLoans.Add(currentLoan1);
             
             // Add Action Items for App1
