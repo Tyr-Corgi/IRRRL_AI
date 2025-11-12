@@ -1,0 +1,539 @@
+@page "/veteran/documents"
+@page "/veteran/documents/{ApplicationId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using IRRRL.Core.Enums
+@using IRRRL.Web.Features.Veteran.UploadDocument
+@using IRRRL.Web.Features.Veteran.GetMyDocuments
+@using MediatR
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "Veteran")]
+@inject IMediator Mediator
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>My Documents</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-12">
+            <h2><span class="oi oi-document"></span> My Documents</h2>
+            <p class="text-muted">Upload and manage your loan application documents</p>
+        </div>
+    </div>
+
+    @if (applications == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading your applications...</p>
+        </div>
+    }
+    else if (!applications.Any())
+    {
+        <div class="alert alert-info">
+            <h5 class="alert-heading">No Applications Found</h5>
+            <p class="mb-0">You don't have any applications yet. <a href="/veteran/apply">Start a new application</a> to get started.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Application Selector -->
+        @if (applications.Count > 1)
+        {
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Select Application</label>
+                    <select class="form-select" @onchange="OnApplicationChanged">
+                        <option value="">-- Select an application --</option>
+                        @foreach (var app in applications)
+                        {
+                            <option value="@app.Id" selected="@(app.Id == selectedApplicationId)">
+                                @app.ApplicationNumber - @app.Status
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+
+        @if (selectedApplicationId > 0)
+        {
+            <div class="row">
+                <!-- Document Checklist -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><span class="oi oi-list"></span> Required Documents</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (isLoadingDocuments)
+                            {
+                                <div class="text-center py-3">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                    <span class="ms-2">Loading documents...</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="list-group list-group-flush">
+                                    @foreach (var docType in GetRequiredDocuments())
+                                    {
+                                        var uploaded = uploadedDocuments.FirstOrDefault(d => d.DocumentType == docType);
+                                        var isUploaded = uploaded != null;
+                                        var isValidated = isUploaded && uploaded.IsValidated;
+
+                                        <div class="list-group-item">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center">
+                                                        @if (isValidated)
+                                                        {
+                                                            <span class="badge bg-success me-2">
+                                                                <span class="oi oi-check"></span> Validated
+                                                            </span>
+                                                        }
+                                                        else if (isUploaded)
+                                                        {
+                                                            <span class="badge bg-warning me-2">
+                                                                <span class="oi oi-clock"></span> Pending Review
+                                                            </span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge bg-secondary me-2">
+                                                                <span class="oi oi-circle-x"></span> Required
+                                                            </span>
+                                                        }
+                                                        <div>
+                                                            <strong>@GetDocumentTypeName(docType)</strong>
+                                                            <br />
+                                                            <small class="text-muted">@GetDocumentDescription(docType)</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-center">
+                                                    @if (isUploaded)
+                                                    {
+                                                        <small class="text-muted">
+                                                            Uploaded: @uploaded.CreatedAt.ToString("MM/dd/yyyy")<br />
+                                                            @if (uploaded.FileSizeBytes > 0)
+                                                            {
+                                                                <span>@FormatFileSize(uploaded.FileSizeBytes)</span>
+                                                            }
+                                                        </small>
+                                                    }
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    @if (isUploaded)
+                                                    {
+                                                        <button class="btn btn-sm btn-outline-primary me-1" @onclick="() => DownloadDocument(uploaded.Id)">
+                                                            <span class="oi oi-cloud-download"></span> Download
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteDocument(uploaded.Id)">
+                                                            <span class="oi oi-trash"></span>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button class="btn btn-sm btn-primary" @onclick="() => ShowUploadModal(docType)">
+                                                            <span class="oi oi-cloud-upload"></span> Upload
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Progress & Tips -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><span class="oi oi-info"></span> Upload Progress</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="display-4 text-primary mb-2">@completionPercentage%</div>
+                            <div class="progress mb-2" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: @completionPercentage%" aria-valuenow="@completionPercentage" aria-valuemin="0" aria-valuemax="100">
+                                    @uploadedDocuments.Count / @GetRequiredDocuments().Count()
+                                </div>
+                            </div>
+                            <small class="text-muted">Documents uploaded</small>
+                        </div>
+                    </div>
+
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="mb-0"><span class="oi oi-lightbulb"></span> Upload Tips</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul class="small mb-0">
+                                <li class="mb-2">Upload clear, readable scans or photos</li>
+                                <li class="mb-2">Accepted formats: PDF, JPG, PNG</li>
+                                <li class="mb-2">Maximum file size: 10 MB</li>
+                                <li class="mb-2">Ensure all pages are included</li>
+                                <li class="mb-0">Documents will be reviewed within 24-48 hours</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<!-- Upload Modal -->
+@if (showUploadModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload @GetDocumentTypeName(selectedDocumentType)</h5>
+                    <button type="button" class="btn-close" @onclick="CloseUploadModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">@GetDocumentDescription(selectedDocumentType)</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Select File</label>
+                        <InputFile OnChange="OnFileSelected" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                        <small class="text-muted">Max 10MB - PDF, JPG, PNG only</small>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(uploadErrorMessage))
+                    {
+                        <div class="alert alert-danger">
+                            <span class="oi oi-warning"></span> @uploadErrorMessage
+                        </div>
+                    }
+
+                    @if (selectedFile != null)
+                    {
+                        <div class="alert alert-info">
+                            <strong>Selected:</strong> @selectedFile.Name (@FormatFileSize(selectedFile.Size))
+                        </div>
+                    }
+
+                    @if (isUploading)
+                    {
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: @uploadProgress%" aria-valuenow="@uploadProgress" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="text-muted">Uploading... @uploadProgress%</small>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseUploadModal" disabled="@isUploading">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="UploadFile" disabled="@(selectedFile == null || isUploading)">
+                        @if (isUploading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            <span>Uploading...</span>
+                        }
+                        else
+                        {
+                            <span class="oi oi-cloud-upload me-1"></span>
+                            <span>Upload</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int ApplicationId { get; set; }
+
+    private List<ApplicationSummary> applications = new();
+    private int selectedApplicationId = 0;
+    private List<DocumentInfo> uploadedDocuments = new();
+    private bool isLoadingDocuments = false;
+
+    // Upload modal
+    private bool showUploadModal = false;
+    private DocumentType selectedDocumentType;
+    private IBrowserFile? selectedFile;
+    private bool isUploading = false;
+    private int uploadProgress = 0;
+    private string? uploadErrorMessage;
+
+    private int completionPercentage => GetRequiredDocuments().Any()
+        ? (int)((double)uploadedDocuments.Count / GetRequiredDocuments().Count() * 100)
+        : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadApplications();
+        
+        if (ApplicationId > 0)
+        {
+            selectedApplicationId = ApplicationId;
+        }
+        else if (applications.Any())
+        {
+            selectedApplicationId = applications.First().Id;
+        }
+
+        if (selectedApplicationId > 0)
+        {
+            await LoadDocuments();
+        }
+    }
+
+    private async Task LoadApplications()
+    {
+        // TODO: Create GetMyApplications command
+        // For now, simulate data
+        applications = new List<ApplicationSummary>
+        {
+            new ApplicationSummary { Id = 1, ApplicationNumber = "IRRRL-2025-001", Status = "Submitted" }
+        };
+    }
+
+    private async Task LoadDocuments()
+    {
+        isLoadingDocuments = true;
+        
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return;
+            }
+
+            var result = await Mediator.Send(new GetMyDocumentsQuery(selectedApplicationId, userId));
+
+            if (result.IsSuccess)
+            {
+                uploadedDocuments = result.Value.Select(d => new DocumentInfo
+                {
+                    Id = d.Id,
+                    DocumentType = d.DocumentType,
+                    FileName = d.FileName,
+                    FileSizeBytes = d.FileSizeBytes,
+                    IsValidated = d.IsValidated,
+                    CreatedAt = d.UploadedDate
+                }).ToList();
+            }
+        }
+        finally
+        {
+            isLoadingDocuments = false;
+        }
+    }
+
+    private async Task OnApplicationChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var appId))
+        {
+            selectedApplicationId = appId;
+            NavigationManager.NavigateTo($"/veteran/documents/{appId}");
+            await LoadDocuments();
+        }
+    }
+
+    private IEnumerable<DocumentType> GetRequiredDocuments()
+    {
+        return new[]
+        {
+            DocumentType.CertificateOfEligibility,
+            DocumentType.VALoanStatement,
+            DocumentType.PhotoID,
+            DocumentType.HomeownersInsurance,
+            DocumentType.PropertyTaxInfo
+        };
+    }
+
+    private string GetDocumentTypeName(DocumentType docType)
+    {
+        return docType switch
+        {
+            DocumentType.CertificateOfEligibility => "Certificate of Eligibility (COE)",
+            DocumentType.VALoanStatement => "VA Loan Statement",
+            DocumentType.PhotoID => "Photo ID (Driver's License)",
+            DocumentType.HomeownersInsurance => "Homeowners Insurance",
+            DocumentType.PropertyTaxInfo => "Property Tax Info",
+            _ => docType.ToString()
+        };
+    }
+
+    private string GetDocumentDescription(DocumentType docType)
+    {
+        return docType switch
+        {
+            DocumentType.CertificateOfEligibility => "VA Form 26-1880 showing eligibility for VA benefits",
+            DocumentType.VALoanStatement => "Most recent mortgage statement showing loan balance and payments",
+            DocumentType.PhotoID => "Valid government-issued photo identification",
+            DocumentType.HomeownersInsurance => "Current homeowners insurance declaration page",
+            DocumentType.PropertyTaxInfo => "Recent property tax bill or escrow statement",
+            _ => "Required document for your application"
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+
+    private void ShowUploadModal(DocumentType docType)
+    {
+        selectedDocumentType = docType;
+        selectedFile = null;
+        uploadErrorMessage = null;
+        showUploadModal = true;
+    }
+
+    private void CloseUploadModal()
+    {
+        showUploadModal = false;
+        selectedFile = null;
+        uploadErrorMessage = null;
+    }
+
+    private void OnFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        uploadErrorMessage = null;
+
+        // Validate file
+        if (selectedFile.Size > 10 * 1024 * 1024) // 10 MB
+        {
+            uploadErrorMessage = "File size exceeds 10 MB limit.";
+            selectedFile = null;
+            return;
+        }
+
+        var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+        var extension = Path.GetExtension(selectedFile.Name).ToLowerInvariant();
+        if (!allowedExtensions.Contains(extension))
+        {
+            uploadErrorMessage = "Invalid file type. Only PDF, JPG, and PNG files are allowed.";
+            selectedFile = null;
+            return;
+        }
+    }
+
+    private async Task UploadFile()
+    {
+        if (selectedFile == null) return;
+
+        isUploading = true;
+        uploadProgress = 0;
+        uploadErrorMessage = null;
+
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                uploadErrorMessage = "User authentication failed";
+                return;
+            }
+
+            // Read file into stream
+            var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10 MB
+
+            uploadProgress = 30;
+            StateHasChanged();
+
+            // Upload via MediatR
+            var result = await Mediator.Send(new UploadDocumentCommand(
+                selectedApplicationId,
+                selectedDocumentType,
+                selectedFile.Name,
+                selectedFile.ContentType,
+                selectedFile.Size,
+                stream,
+                userId
+            ));
+
+            uploadProgress = 90;
+            StateHasChanged();
+
+            if (result.IsSuccess)
+            {
+                uploadProgress = 100;
+                StateHasChanged();
+
+                // Refresh document list
+                await LoadDocuments();
+
+                CloseUploadModal();
+                
+                await JS.InvokeVoidAsync("alert", "Document uploaded successfully!");
+            }
+            else
+            {
+                uploadErrorMessage = result.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadErrorMessage = $"Upload failed: {ex.Message}";
+        }
+        finally
+        {
+            isUploading = false;
+            uploadProgress = 0;
+        }
+    }
+
+    private async Task DownloadDocument(int documentId)
+    {
+        // TODO: Implement download
+        await JS.InvokeVoidAsync("alert", "Download functionality coming soon!");
+    }
+
+    private async Task DeleteDocument(int documentId)
+    {
+        var confirmed = await JS.InvokeAsync<bool>("confirm", "Are you sure you want to delete this document?");
+        if (confirmed)
+        {
+            // TODO: Implement delete via MediatR command
+            await LoadDocuments();
+        }
+    }
+
+    // DTOs
+    private class ApplicationSummary
+    {
+        public int Id { get; set; }
+        public string ApplicationNumber { get; set; } = "";
+        public string Status { get; set; } = "";
+    }
+
+    private class DocumentInfo
+    {
+        public int Id { get; set; }
+        public DocumentType DocumentType { get; set; }
+        public string FileName { get; set; } = "";
+        public long FileSizeBytes { get; set; }
+        public bool IsValidated { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}
+

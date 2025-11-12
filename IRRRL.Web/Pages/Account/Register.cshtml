@@ -31,43 +31,44 @@
                         <form method="post">
                             @Html.AntiForgeryToken()
                             <div class="mb-3">
-                                <label asp-for="Input.FirstName" class="form-label"></label>
-                                <input asp-for="Input.FirstName" class="form-control" />
+                                <label for="Input_FirstName" class="form-label">First Name</label>
+                                <input asp-for="Input.FirstName" class="form-control" placeholder="John" />
                                 <span asp-validation-for="Input.FirstName" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.LastName" class="form-label"></label>
-                                <input asp-for="Input.LastName" class="form-control" />
+                                <label for="Input_LastName" class="form-label">Last Name</label>
+                                <input asp-for="Input.LastName" class="form-control" placeholder="Doe" />
                                 <span asp-validation-for="Input.LastName" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.Email" class="form-label"></label>
-                                <input asp-for="Input.Email" class="form-control" />
+                                <label for="Input_Email" class="form-label">Email</label>
+                                <input asp-for="Input.Email" class="form-control" placeholder="john.doe@example.com" />
                                 <span asp-validation-for="Input.Email" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                                <label for="Input_PhoneNumber" class="form-label">Phone Number</label>
                                 <input asp-for="Input.PhoneNumber" class="form-control" placeholder="(555) 555-5555" />
                                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.Password" class="form-label"></label>
-                                <input asp-for="Input.Password" class="form-control" type="password" />
+                                <label for="Input_Password" class="form-label">Password</label>
+                                <input asp-for="Input.Password" class="form-control" type="password" placeholder="Enter a strong password" />
                                 <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                <small class="text-muted">At least 6 characters</small>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                                <input asp-for="Input.ConfirmPassword" class="form-control" type="password" />
+                                <label for="Input_ConfirmPassword" class="form-label">Confirm Password</label>
+                                <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="Re-enter your password" />
                                 <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="Input.Role" class="form-label">I am a:</label>
+                                <label for="Input_Role" class="form-label">I am a:</label>
                                 <select asp-for="Input.Role" class="form-select">
                                     <option value="Veteran">Veteran (Applicant)</option>
                                     <option value="LoanOfficer">Loan Officer</option>

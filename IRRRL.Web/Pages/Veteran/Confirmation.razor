@@ -1,6 +1,8 @@
 @page "/veteran/confirmation"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.WebUtilities
 @attribute [Authorize(Roles = "Veteran")]
+@inject NavigationManager NavigationManager
 
 <PageTitle>Application Submitted</PageTitle>
 
@@ -35,8 +37,8 @@
                         <div class="col-md-6 mb-3">
                             <div class="card">
                                 <div class="card-body">
-                                    <h6 class="card-title">Application ID</h6>
-                                    <div class="h4 mb-0 text-primary">#@applicationId</div>
+                                    <h6 class="card-title">Application Number</h6>
+                                    <div class="h4 mb-0 text-primary">@applicationNumber</div>
                                 </div>
                             </div>
                         </div>
@@ -65,12 +67,15 @@
 </div>
 
 @code {
-    private string applicationId = DateTime.Now.Ticks.ToString().Substring(8); // Simple ID for demo
+    private string applicationNumber = "IRRRL-PENDING";
 
     protected override void OnInitialized()
     {
-        // In a real app, this would come from query parameters or state
-        // applicationId = NavigationManager.GetQueryParameter("id");
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("appNumber", out var appNum))
+        {
+            applicationNumber = appNum.ToString();
+        }
     }
 }
 

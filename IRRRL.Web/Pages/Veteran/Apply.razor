@@ -1,8 +1,16 @@
 @page "/veteran/apply"
 @using Microsoft.AspNetCore.Authorization
 @using IRRRL.Core.Enums
+@using IRRRL.Core.Entities
+@using IRRRL.Web.Features.Veteran.SubmitApplication
+@using MediatR
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @attribute [Authorize(Roles = "Veteran")]
 @inject NavigationManager NavigationManager
+@inject IMediator Mediator
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ILogger<Apply> Logger
 
 <PageTitle>Apply for IRRRL</PageTitle>
 
@@ -18,7 +26,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
-                @for (int i = 1; i <= 8; i++)
+                @for (int i = 1; i <= 9; i++)
                 {
                     var stepNumber = i;
                     var isActive = currentStep == stepNumber;
@@ -41,7 +49,7 @@
                             <div class="fw-bold">@GetStepTitle(stepNumber)</div>
                             <small class="text-muted">@GetStepDescription(stepNumber)</small>
                         </div>
-                        @if (i < 8)
+                        @if (i < 9)
                         {
                             <div class="flex-grow-1 border-top mx-3"></div>
                         }
@@ -85,26 +93,33 @@
                     }
                     else if (currentStep == 5)
                     {
-                        <PropertyInfoStep 
+                        <NewLoanTermsStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 6)
                     {
-                        <DeclarationsStep 
+                        <PropertyInfoStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 7)
                     {
-                        <DemographicsStep 
+                        <DeclarationsStep 
                             Model="@applicationModel" 
                             OnNext="NextStep" 
                             OnBack="PreviousStep" />
                     }
                     else if (currentStep == 8)
+                    {
+                        <DemographicsStep 
+                            Model="@applicationModel" 
+                            OnNext="NextStep" 
+                            OnBack="PreviousStep" />
+                    }
+                    else if (currentStep == 9)
                     {
                         <ReviewAndSubmitStep 
                             Model="@applicationModel" 
@@ -123,7 +138,7 @@
 
     private void NextStep()
     {
-        if (currentStep < 8)
+        if (currentStep < 9)
         {
             currentStep++;
         }
@@ -145,10 +160,11 @@
             2 => "Current Address",
             3 => "Military Service",
             4 => "Current Loan",
-            5 => "Property Info",
-            6 => "Declarations",
-            7 => "Demographics",
-            8 => "Review & Submit",
+            5 => "New Loan Terms",
+            6 => "Property Info",
+            7 => "Declarations",
+            8 => "Demographics",
+            9 => "Review & Submit",
             _ => ""
         };
     }
@@ -161,20 +177,119 @@
             2 => "Residency history",
             3 => "VA eligibility",
             4 => "Existing VA loan",
-            5 => "Property details",
-            6 => "Legal disclosures",
-            7 => "Optional (HMDA)",
-            8 => "Final review",
+            5 => "Desired rate & term",
+            6 => "Property details",
+            7 => "Legal disclosures",
+            8 => "Optional (HMDA)",
+            9 => "Final review",
             _ => ""
         };
     }
 
     private async Task SubmitApplication()
     {
-        // TODO: Submit to backend API
-        // For now, simulate submission and redirect to confirmation
-        await Task.Delay(500);
-        NavigationManager.NavigateTo("/veteran/confirmation");
+        try
+        {
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                Logger.LogError("User ID not found in claims");
+                return;
+            }
+
+            // Map form model to entities
+            var borrower = new Borrower
+            {
+                FirstName = applicationModel.FirstName,
+                LastName = applicationModel.LastName,
+                Email = applicationModel.Email,
+                Phone = applicationModel.PhoneNumber,
+                SSN = applicationModel.SSN,
+                DateOfBirth = applicationModel.DateOfBirth ?? DateTime.MinValue,
+                VAFileNumber = applicationModel.VACaseNumber,
+                HasDisabilityRating = !string.IsNullOrEmpty(applicationModel.VADisabilityRating),
+                DisabilityPercentage = int.TryParse(applicationModel.VADisabilityRating, out var rating) ? rating : null,
+                StreetAddress = applicationModel.CurrentStreetAddress,
+                City = applicationModel.CurrentCity,
+                State = applicationModel.CurrentState,
+                ZipCode = applicationModel.CurrentZipCode,
+                UserId = userId
+            };
+
+            var property = new Property
+            {
+                StreetAddress = applicationModel.PropertyAddress,
+                City = applicationModel.City,
+                State = applicationModel.State,
+                ZipCode = applicationModel.ZipCode,
+                PropertyType = applicationModel.PropertyType,
+                CurrentlyOccupied = applicationModel.Occupancy == "PrimaryResidence",
+                PreviouslyOccupied = applicationModel.Occupancy == "PrimaryResidence",
+                OccupancyStartDate = applicationModel.PropertyAcquiredDate,
+                EstimatedValue = applicationModel.EstimatedHomeValue,
+                YearBuilt = applicationModel.YearBuilt
+            };
+
+            var currentLoan = new CurrentLoan
+            {
+                LoanNumber = applicationModel.LoanNumber,
+                CurrentBalance = applicationModel.CurrentLoanAmount,
+                OriginalLoanAmount = applicationModel.CurrentLoanAmount,
+                InterestRate = applicationModel.CurrentInterestRate,
+                MonthlyPrincipalAndInterest = applicationModel.CurrentMonthlyPayment,
+                TotalMonthlyPayment = applicationModel.CurrentMonthlyPayment,
+                RemainingTermMonths = applicationModel.RemainingTermMonths,
+                OriginalTermMonths = 360, // Assuming standard 30-year loan
+                LoanType = LoanType.FixedRate, // Default, could make this selectable
+                OriginationDate = applicationModel.OriginalLoanDate ?? DateTime.MinValue,
+                Lender = "", // Not collected in form
+                IsVALoan = true,
+                CurrentOnPayments = true // Assuming for now
+            };
+
+            // Calculate funding fee
+            var fundingFeeAmount = applicationModel.CurrentLoanAmount * 0.005m; // 0.5%
+            var requestedLoanAmount = applicationModel.IncludeFundingFeeInLoan 
+                ? applicationModel.CurrentLoanAmount + fundingFeeAmount 
+                : applicationModel.CurrentLoanAmount;
+
+            var application = new IRRRLApplication
+            {
+                ApplicationType = ApplicationType.RateAndTerm,
+                Borrower = borrower,
+                Property = property,
+                CurrentLoan = currentLoan,
+                RequestedLoanAmount = requestedLoanAmount,
+                RequestedInterestRate = applicationModel.DesiredInterestRate,
+                RequestedTermMonths = applicationModel.DesiredTermMonths,
+                FundingFeeAmount = fundingFeeAmount,
+                FundingFeeWaived = false,
+                TotalClosingCosts = fundingFeeAmount, // Simplified - usually includes other costs
+                TotalLoanCosts = fundingFeeAmount
+            };
+
+            // Submit via MediatR
+            var result = await Mediator.Send(new SubmitApplicationCommand(userId, application));
+
+            if (result.IsSuccess)
+            {
+                Logger.LogInformation("Application {ApplicationNumber} submitted successfully", result.Value);
+                NavigationManager.NavigateTo($"/veteran/confirmation?appNumber={result.Value}");
+            }
+            else
+            {
+                Logger.LogError("Failed to submit application: {Error}", result.Error);
+                // TODO: Show error message to user
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error submitting application");
+            // TODO: Show error message to user
+        }
     }
 
     // Model for the application form

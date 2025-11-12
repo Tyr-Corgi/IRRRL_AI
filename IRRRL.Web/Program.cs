@@ -106,6 +106,12 @@ builder.Services.AddScoped<IAIDocumentValidator, AIDocumentValidator>();
 
 // Document Services
 builder.Services.AddScoped<IDocumentGenerator, QuestPDFDocumentGenerator>();
+builder.Services.AddScoped<IDocumentStorageService>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<FileSystemDocumentStorageService>>();
+    var documentsPath = Path.Combine(Directory.GetCurrentDirectory(), "Documents");
+    return new FileSystemDocumentStorageService(logger, documentsPath);
+});
 
 // Infrastructure Services
 builder.Services.AddScoped<IApplicationNotificationService, ApplicationNotificationService>();
